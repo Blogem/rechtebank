@@ -114,7 +114,7 @@ export class ApiAdapter implements IApiPort {
                 return verdict;
             } catch (fetchError) {
                 clearTimeout(timeoutId);
-                
+
                 // Check if it's an abort error (timeout)
                 if (fetchError instanceof DOMException && fetchError.name === 'AbortError') {
                     throw new Error('De rechter heeft te lang beraadslaagd. Probeer het opnieuw.');
@@ -122,12 +122,12 @@ export class ApiAdapter implements IApiPort {
                 if (fetchError instanceof Error && fetchError.name === 'AbortError') {
                     throw new Error('De rechter heeft te lang beraadslaagd. Probeer het opnieuw.');
                 }
-                
+
                 throw fetchError;
             }
         } catch (error) {
             // Retry on network errors (but not on timeout errors)
-            if (attempt < this.maxRetries && this.isNetworkError(error) && 
+            if (attempt < this.maxRetries && this.isNetworkError(error) &&
                 !(error instanceof Error && error.message.includes('te lang beraadslaagd'))) {
                 await this.delay(this.retryDelay * attempt);
                 return this.uploadWithRetry(formData, attempt + 1);
