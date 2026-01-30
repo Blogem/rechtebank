@@ -53,7 +53,7 @@ export class CameraAdapter implements ICameraPort {
                     video: true,
                     audio: false
                 };
-                
+
                 const stream = await navigator.mediaDevices.getUserMedia(basicConstraints);
                 this.currentStream = stream;
                 return stream;
