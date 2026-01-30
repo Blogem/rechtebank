@@ -1,43 +1,43 @@
-1. De Architectuur (Docker Compose)
+1. The Architecture (Docker Compose)
 
-Je kunt dit draaien met drie lichte containers. Omdat Go gecompileerd wordt naar een kleine binary, blijft je footprint op de VM minimaal.
+You can run this using three lightweight containers. Since Go compiles into a small binary, your footprint on the VM remains minimal.
 
-    Frontend (Nginx/SPA): Een simpele React of Svelte app waar de gebruiker de camera opent of een foto uploadt.
+    Frontend (Nginx/SPA): A simple React or Svelte app where the user opens the camera or uploads a photo.
 
-    Backend (Go): De API die de foto ontvangt, doorstuurt naar de analyse-service en het "vonnis" teruggeeft.
+    Backend (Go): The API that receives the photo, forwards it to the analysis service, and returns the "verdict."
 
-    Reverse Proxy (Traefik of Nginx): Voor je SSL (HTTPS is nodig om de camera op een smartphone te mogen gebruiken).
+    Reverse Proxy (Traefik or Nginx): For your SSL (HTTPS is required to use the camera on a smartphone).
 
-2. De Foto-analyse: De "Slimme" Keuze
+2. Photo Analysis: The "Smart" Choice
 
-Voorheen zou ik OpenCV (computer vision) aanraden, maar dat is veel wiskundig werk om perspectief en objecten te herkennen.
+Previously, I would have recommended OpenCV (computer vision), but that requires a lot of mathematical work to recognize perspective and objects.
 
-Mijn advies: Gebruik de Gemini 1.5 Flash API. => is er niet meer, gebruik gemini-2.5-flash-lite
+My advice: Use the Gemini 2.5 Flash Lite API.
 
-    Waarom: Het is een "multimodal" model. Je stuurt de foto + een tekstprompt op ("Is deze bank recht?"). Het model begrijpt direct wat een bank is, ziet de hoek van de rugleuning en kan direct in juridisch jargon antwoorden.
+    Why: It is a "multimodal" model. You send the photo + a text prompt ("Is this couch straight?"). The model immediately understands what a couch is, sees the angle of the backrest, and can respond immediately in legal jargon.
 
-    Kosten: Extreem laag. Er is een gratis tier (tot 15 verzoeken per minuut), en daarboven betaal je in 2026 slechts ongeveer $0,50 per 1 miljoen tokens (een paar cent voor duizenden foto's).
+    Costs: Extremely low. There is a free tier, and above that in 2026, you only pay about $0.10 per 1 million tokens (a few cents for thousands of photos).
 
-Hoe de prompt eruit ziet (System Instruction):
+System Instruction Prompt:
 
     "Je bent een strenge rechter van de Rechtbank voor Meubilair. Analyseer de geüploade foto. Als het geen bank is, verklaar de zaak dan 'niet-ontvankelijk'. Als het wel een bank is, beoordeel of deze 180 graden recht is. Geef een score van 1-10 en een grappig juridisch vonnis (bijv. 'Veroordeeld tot de brandstapel wegens een rugleuning-afwijking van 5 graden')."
 
-3. De Go Backend (De "Griffier")
+3. The Go Backend (The "Clerk")
 
-In Go kun je de net/http library gebruiken of een framework zoals Gin of Echo. De workflow is simpel:
+In Go, you can use the net/http library or a framework like Gin or Echo. The workflow is simple:
 
-    Endpoint /v1/judge: Ontvangt de multipart/form-data (de afbeelding).
+    Endpoint /v1/judge: Receives the multipart/form-data (the image).
 
-    API Call: Go stuurt de image bytes naar Google Gemini API (via de officiële google-generative-ai-go SDK).
+    API Call: Go sends the image bytes to the Google Gemini API (via the official google-generative-ai-go SDK).
 
-    JSON Response: Gemini geeft een grappige tekst terug, die Go weer naar je frontend stuurt.
+    JSON Response: Gemini returns a funny text, which Go sends back to your frontend.
 
-5. Het Interactieve Element (De "Live Waterpas")
+5. The Interactive Element (The "Live Level")
 
-Om het echt "af" te maken, kun je in de frontend een CSS-overlay over de camerafeed leggen.
+To really "finish" the project, you can place a CSS overlay over the camera feed in the frontend.
 
-    Gebruik de DeviceOrientationEvent API van de browser.
+    Use the browser's DeviceOrientationEvent API.
 
-    Terwijl de gebruiker de foto probeert te maken, ziet hij een virtuele waterpas in beeld.
+    While the user attempts to take the photo, they see a virtual spirit level (waterpas) on the screen.
 
-    Pas als de telefoon kaarsrecht wordt gehouden, wordt de "Upload" knop actief. Dit dwingt de gebruiker om serieus mee te doen met de absurditeit.
+    The "Upload" button only becomes active when the phone is held perfectly straight. This forces the user to fully engage with the absurdity of the "trial."
