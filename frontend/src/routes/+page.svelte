@@ -1,122 +1,33 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 	import {
 		appState,
-		cameraStream,
-		cameraPermissionGranted,
-		capturedPhoto,
-		orientationData,
-		orientationPermissionGranted,
-		levelCheckEnabled,
-		isDeviceLevel,
 		currentVerdict,
 		uploadError,
 		resetAppState
 	} from '$lib/shared/stores/appStore';
 
-	import { CameraAdapter } from '$lib/adapters/camera/CameraAdapter';
-	import { OrientationAdapter } from '$lib/adapters/orientation/OrientationAdapter';
 	import { ApiAdapter } from '$lib/adapters/api/ApiAdapter';
 
+	import PhotoCapture from '$lib/features/PhotoCapture.svelte';
 	import CameraPermission from '$lib/features/CameraPermission.svelte';
-	import CameraPreview from '$lib/features/CameraPreview.svelte';
-	import PhotoConfirmation from '$lib/features/PhotoConfirmation.svelte';
-	import FileUploadFallback from '$lib/features/FileUploadFallback.svelte';
-	import SpiritLevel from '$lib/features/SpiritLevel.svelte';
-	import AccessibilityToggle from '$lib/features/AccessibilityToggle.svelte';
 	import UploadProgress from '$lib/features/UploadProgress.svelte';
 	import VerdictDisplay from '$lib/features/VerdictDisplay.svelte';
 	import ErrorDisplay from '$lib/features/ErrorDisplay.svelte';
 
-	const cameraAdapter = new CameraAdapter();
-	const orientationAdapter = new OrientationAdapter();
 	const apiAdapter = new ApiAdapter();
 
-	let currentFacingMode: 'user' | 'environment' = 'environment';
-	let photoObjectUrl: string | null = null;
-	let showFileUpload = false;
-
-	onMount(async () => {
-		// Check if camera is supported
-		if (!cameraAdapter.isCameraSupported()) {
-			showFileUpload = true;
-			appState.set('camera-ready');
-		}
-
-		// On non-iOS devices, start orientation monitoring immediately
-		if (!orientationAdapter.requiresPermission()) {
-			orientationPermissionGranted.set(true);
-			orientationAdapter.startMonitoring((data) => {
-				orientationData.set(data);
-			});
-		}
+	onMount(() => {
+		appState.set('camera-ready');
 	});
 
-	onDestroy(() => {
-		cameraAdapter.stopCamera();
-		orientationAdapter.stopMonitoring();
-		if (photoObjectUrl) {
-			URL.revokeObjectURL(photoObjectUrl);
-		}
-	});
-
-	async function handlePermissionRequested() {
-		// Request orientation permission first (iOS requires user gesture)
-		if (orientationAdapter.requiresPermission() && !$orientationPermissionGranted) {
-			const granted = await orientationAdapter.requestOrientationPermission();
-			orientationPermissionGranted.set(granted);
-
-			if (granted) {
-				orientationAdapter.startMonitoring((data) => {
-					orientationData.set(data);
-				});
-			}
-		}
-
-		const stream = await cameraAdapter.requestCameraAccess(currentFacingMode);
-
-		if (stream) {
-			cameraStream.set(stream);
-			cameraPermissionGranted.set(true);
-			appState.set('camera-ready');
-		} else {
-			showFileUpload = true;
-			cameraPermissionGranted.set(false);
-		}
-	}
-
-	async function handleCapture() {
-		const photo = await cameraAdapter.capturePhoto();
-
-		if (photo) {
-			capturedPhoto.set(photo);
-			photoObjectUrl = URL.createObjectURL(photo);
-			appState.set('photo-captured');
-		}
-	}
-
-	async function handleSwitchCamera() {
-		currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-		cameraAdapter.stopCamera();
-
-		const stream = await cameraAdapter.requestCameraAccess(currentFacingMode);
-		if (stream) {
-			cameraStream.set(stream);
-		}
-	}
-
-	function handleRetake() {
-		if (photoObjectUrl) {
-			URL.revokeObjectURL(photoObjectUrl);
-			photoObjectUrl = null;
-		}
-		capturedPhoto.set(null);
+	function handlePermissionRequested() {
 		appState.set('camera-ready');
 	}
 
-	async function handleConfirm() {
-		if (!$capturedPhoto) return;
-
+	async function handlePhotoConfirmed(blob: Blob, rotation: number) {
+		// PhotoCapture component handles rotation internally and returns rotated blob
+		// Pass rotation=0 since blob is already rotated (rotation value kept for metadata/logging)
 		appState.set('uploading');
 		uploadError.set(null);
 
@@ -127,7 +38,8 @@
 				captureMethod: 'camera' as const
 			};
 
-			const verdict = await apiAdapter.uploadPhoto($capturedPhoto, metadata);
+			// Blob is already rotated by PhotoCapture, so pass rotation=0
+			const verdict = await apiAdapter.uploadPhoto(blob, metadata, 0);
 			currentVerdict.set(verdict);
 			appState.set('showing-verdict');
 		} catch (error) {
@@ -136,38 +48,13 @@
 		}
 	}
 
-	async function handleFileSelected(event: CustomEvent<{ file: File }>) {
-		const file = event.detail.file;
-
-		appState.set('uploading');
-		uploadError.set(null);
-
-		try {
-			const metadata = {
-				userAgent: navigator.userAgent,
-				timestamp: new Date().toISOString(),
-				captureMethod: 'file' as const
-			};
-
-			const verdict = await apiAdapter.uploadPhoto(file, metadata);
-			currentVerdict.set(verdict);
-			appState.set('showing-verdict');
-		} catch (error) {
-			uploadError.set(error instanceof Error ? error.message : 'Onbekende fout opgetreden');
-			appState.set('error');
-		}
+	function handleRetake() {
+		// PhotoCapture component handles its own cleanup
+		appState.set('camera-ready');
 	}
 
 	function handleReset() {
-		if (photoObjectUrl) {
-			URL.revokeObjectURL(photoObjectUrl);
-			photoObjectUrl = null;
-		}
 		resetAppState();
-	}
-
-	function handleToggleLevelCheck(event: CustomEvent<{ enabled: boolean }>) {
-		levelCheckEnabled.set(event.detail.enabled);
 	}
 </script>
 
@@ -184,54 +71,17 @@
 
 	<main class="app-main">
 		{#if $appState === 'requesting-permissions'}
-			<CameraPermission
-				httpsRequired={!cameraAdapter.isCameraSupported()}
-				onpermissionrequested={handlePermissionRequested}
-			/>
-
-			{#if !cameraAdapter.isCameraSupported()}
-				<div class="or-divider">
-					<span>of</span>
-				</div>
-				<FileUploadFallback onfileselected={handleFileSelected} />
-			{/if}
+			<CameraPermission httpsRequired={false} onpermissionrequested={handlePermissionRequested} />
 		{:else if $appState === 'camera-ready'}
-			{#if showFileUpload || !$cameraPermissionGranted}
-				<FileUploadFallback onfileselected={handleFileSelected} />
-			{:else if $cameraStream}
-				<div class="camera-section">
-					<AccessibilityToggle
-						bind:levelCheckEnabled={$levelCheckEnabled}
-						ontoggle={handleToggleLevelCheck}
-					/>
-
-					<SpiritLevel orientationData={$orientationData} enabled={$levelCheckEnabled} />
-
-					<CameraPreview
-						stream={$cameraStream}
-						isLevelCheckEnabled={$levelCheckEnabled}
-						isDeviceLevel={$isDeviceLevel}
-						oncapture={handleCapture}
-						onswitchcamera={handleSwitchCamera}
-					/>
-				</div>
-			{/if}
-		{:else if $appState === 'photo-captured' && photoObjectUrl}
-			<PhotoConfirmation
-				photoUrl={photoObjectUrl}
-				onconfirm={handleConfirm}
-				onretake={handleRetake}
-			/>
+			<div class="camera-section">
+				<PhotoCapture onPhotoConfirmed={handlePhotoConfirmed} />
+			</div>
 		{:else if $appState === 'uploading'}
 			<UploadProgress progress={50} message="De rechter beraadslaagt..." />
 		{:else if $appState === 'showing-verdict' && $currentVerdict}
 			<VerdictDisplay verdict={$currentVerdict} onreset={handleReset} />
 		{:else if $appState === 'error'}
-			<ErrorDisplay
-				message={$uploadError || 'Er is een fout opgetreden'}
-				onretry={handleConfirm}
-				onreset={handleReset}
-			/>
+			<ErrorDisplay message={$uploadError || 'Er is een fout opgetreden'} onreset={handleReset} />
 		{/if}
 	</main>
 
@@ -292,31 +142,6 @@
 		border-radius: 8px;
 		padding: 1.5rem;
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-	}
-
-	.or-divider {
-		text-align: center;
-		margin: 2rem 0;
-		position: relative;
-	}
-
-	.or-divider::before {
-		content: '';
-		position: absolute;
-		top: 50%;
-		left: 0;
-		right: 0;
-		height: 1px;
-		background: rgba(255, 255, 255, 0.3);
-	}
-
-	.or-divider span {
-		background: rgba(0, 0, 0, 0.3);
-		color: white;
-		padding: 0.5rem 1rem;
-		border-radius: 20px;
-		position: relative;
-		font-weight: 500;
 	}
 
 	.app-footer {

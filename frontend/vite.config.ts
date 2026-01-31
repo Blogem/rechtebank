@@ -2,6 +2,11 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
 import fs from 'fs';
 
+// Check if SSL cert files exist (for local development only)
+const keyPath = '../192.168.1.37+1-key.pem';
+const certPath = '../192.168.1.37+1.pem';
+const hasSSLCerts = fs.existsSync(keyPath) && fs.existsSync(certPath);
+
 export default defineConfig({
 	plugins: [sveltekit()],
 	test: {
@@ -20,10 +25,12 @@ export default defineConfig({
 	},
 	server: {
 		host: '0.0.0.0', // Allow access from other devices on network
-		https: {
-			key: fs.readFileSync('../192.168.1.37+1-key.pem'),
-			cert: fs.readFileSync('../192.168.1.37+1.pem')
-		},
+		...(hasSSLCerts && {
+			https: {
+				key: fs.readFileSync(keyPath),
+				cert: fs.readFileSync(certPath)
+			}
+		}),
 		proxy: {
 			'/v1': {
 				target: 'http://localhost:8080',

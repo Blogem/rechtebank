@@ -4,11 +4,10 @@ Interactive web application for the "Furniture Court" - submit photos of your fu
 
 ## Features
 
-- 📸 **Camera Access**: Capture photos directly from your device camera
-- ⚖️ **Spirit Level Overlay**: Real-time device orientation guidance
+- 📸 **Photo Capture**: Native camera integration via file input
+- 🔄 **Manual Rotation**: Rotate photos before submission with visual preview
 - 📤 **Photo Upload**: Submit furniture photos for AI-powered judgment
 - 🏛️ **Verdict Display**: Receive comedic legal verdicts with Dutch legal styling
-- ♿ **Accessibility**: Optional bypass for level requirements
 - 📱 **Mobile-First**: Optimized for smartphone use
 
 ## Technology Stack
@@ -56,7 +55,7 @@ npm run dev
 
 The app will be available at `http://localhost:5173`
 
-**Note**: Camera access requires HTTPS or localhost. For local development, `localhost` works fine. For network access on mobile devices, see the HTTPS setup guide below.
+**Note**: Camera access via file input works on both HTTP and HTTPS. For local development, `localhost` is sufficient.
 
 ### 4. Run Tests
 
@@ -118,44 +117,6 @@ Pass environment variables at runtime:
 docker run -p 8080:80 -e PUBLIC_API_URL=https://api.example.com rechtbank-frontend
 ```
 
-## HTTPS Setup for Local Development
-
-Camera access on mobile devices requires HTTPS. For local development with mobile testing:
-
-### Option 1: mkcert (Recommended)
-
-1. Install mkcert:
-   ```bash
-   brew install mkcert  # macOS
-   ```
-
-2. Create local CA:
-   ```bash
-   mkcert -install
-   ```
-
-3. Generate certificate:
-   ```bash
-   mkcert localhost 192.168.1.x  # Replace with your local IP
-   ```
-
-4. Configure Vite to use HTTPS:
-   ```typescript
-   // vite.config.ts
-   export default defineConfig({
-     server: {
-       https: {
-         key: fs.readFileSync('./localhost-key.pem'),
-         cert: fs.readFileSync('./localhost.pem')
-       }
-     }
-   });
-   ```
-
-### Option 2: Reverse Proxy
-
-Use a reverse proxy (Nginx, Caddy) with SSL termination in production.
-
 ## Project Structure
 
 ```
@@ -164,13 +125,12 @@ frontend/
 │   ├── lib/
 │   │   ├── adapters/
 │   │   │   ├── api/           # Backend API communication
-│   │   │   ├── camera/        # Camera access via MediaDevices API
-│   │   │   ├── orientation/   # Device orientation via DeviceOrientationEvent
 │   │   │   └── ports/         # Port interfaces for adapters
 │   │   ├── features/          # UI components
 │   │   └── shared/
 │   │       ├── stores/        # Svelte stores for state management
-│   │       └── types/         # TypeScript type definitions
+│   │       ├── types/         # TypeScript type definitions
+│   │       └── utils/         # Utility functions (rotation, etc.)
 │   ├── routes/
 │   │   └── +page.svelte       # Main application page
 │   └── test-setup.ts          # Vitest configuration
@@ -183,26 +143,22 @@ frontend/
 
 ## Architecture
 
-The application follows **Hexagonal Architecture** (Ports & Adapters):
+The application follows **Hexagonal Architecture** (Ports & Adapters) for external integrations:
 
 ### Core Domain
-- Application state machine (app stores)
-- Business logic (spirit level thresholds, validation)
+- Application state machine (Svelte stores)
+- Photo capture and rotation logic
 
 ### Adapters
-- **CameraAdapter**: Wraps `navigator.mediaDevices` API
-- **OrientationAdapter**: Wraps `DeviceOrientationEvent` API
 - **ApiAdapter**: HTTP client for backend communication
 
 ### Ports (Interfaces)
-- **ICameraPort**: Camera access interface
-- **IOrientationPort**: Device orientation interface
 - **IApiPort**: Backend API interface
 
 ### Benefits
 - Testability: Adapters can be mocked in tests
 - Flexibility: Easy to swap implementations
-- Separation: Browser APIs isolated from business logic
+- Separation: External APIs isolated from business logic
 
 ## API Contract
 
@@ -218,6 +174,7 @@ Upload a furniture photo for judgment.
   - `userAgent` (string): Browser user agent
   - `timestamp` (string): ISO 8601 timestamp
   - `captureMethod` (string): `"camera"` or `"file"`
+  - `rotation` (number): Applied rotation in degrees (0, 90, 180, 270)
 
 **Response**:
 ```json
@@ -235,36 +192,26 @@ Upload a furniture photo for judgment.
 
 - **Chrome/Edge**: ✅ Full support
 - **Firefox**: ✅ Full support
-- **Safari**: ✅ Full support (iOS 13+ requires orientation permission)
+- **Safari**: ✅ Full support (iOS 13+)
 - **Mobile browsers**: ✅ Optimized for iOS Safari and Chrome Android
 
 ### Required Browser APIs
-- MediaDevices API (camera access)
-- DeviceOrientationEvent API (spirit level)
+- File API (photo capture via file input)
+- Canvas API (rotation processing)
 - Fetch API (upload)
-- Canvas API (photo capture)
-
-## Accessibility Features
-
-- **Level Check Toggle**: Disable spirit level requirement for users who cannot hold device steady
-- **Keyboard Navigation**: Full keyboard support for controls
-- **Screen Reader Support**: ARIA labels and semantic HTML
-- **File Upload Fallback**: Alternative to camera for users without camera access
 
 ## Troubleshooting
 
-### Camera not working
+### Photo capture not working
 
-1. **Check HTTPS**: Camera requires HTTPS or localhost
-2. **Check permissions**: Ensure browser has camera permission
-3. **Check device**: Some browsers block camera on certain devices
-4. **Fallback**: Use file upload option if camera doesn't work
+1. **Check permissions**: Ensure browser has camera permission
+2. **Check device**: Verify device has a camera
+3. **Try different browser**: Some older browsers may not support file input camera
 
-### Spirit level not working
+### Photo rotation issues
 
-1. **iOS 13+**: Requires explicit permission - click "Allow" when prompted
-2. **Desktop**: Spirit level may not work on devices without orientation sensors
-3. **Accessibility**: Use toggle to disable level requirement
+1. **Manual controls**: Use rotate left/right buttons to correct orientation
+2. **Preview**: Check photo preview before submitting
 
 ### Upload failing
 

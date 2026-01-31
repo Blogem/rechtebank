@@ -115,5 +115,29 @@ describe('ApiAdapter', () => {
 
             vi.useRealTimers();
         });
+
+        it('should upload original photo when rotation is 0°', async () => {
+            const mockBlob = new Blob(['test'], { type: 'image/jpeg' });
+            const mockVerdict = {
+                type: 'guilty',
+                score: 5,
+                verdictText: 'Test verdict',
+                isFurniture: true
+            };
+
+            mockFetch.mockResolvedValue({
+                ok: true,
+                json: async () => mockVerdict
+            });
+
+            await adapter.uploadPhoto(mockBlob, createMockMetadata(), 0);
+
+            // Should be called with original blob (just JPEG conversion, no rotation)
+            expect(mockFetch).toHaveBeenCalled();
+        });
+
+        // Note: Canvas rotation tests require browser environment with full DOM support
+        // These are covered by integration tests and manual testing
+        // Unit tests for rotation logic are in rotation.test.ts
     });
 });
