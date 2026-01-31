@@ -31,6 +31,7 @@ services:
       timeout: 3s
       retries: 3
       start_period: 5s
+    stop_grace_period: 35s
     restart: unless-stopped
     networks:
       - rechtebank-network

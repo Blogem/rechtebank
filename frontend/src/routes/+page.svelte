@@ -73,6 +73,13 @@
 		{#if $appState === 'requesting-permissions'}
 			<CameraPermission httpsRequired={false} onpermissionrequested={handlePermissionRequested} />
 		{:else if $appState === 'camera-ready'}
+			<div class="introduction">
+				<p class="welcome-text">
+					Welkom bij de Rechtbank voor Meubilair, waar elk meubelstuk rekenschap moet afleggen van
+					zijn houding en constructie. Dien uw bewijsmateriaal in en verneem het onverbiddelijke
+					oordeel van de Eerwaarde Rechter.
+				</p>
+			</div>
 			<div class="camera-section">
 				<PhotoCapture onPhotoConfirmed={handlePhotoConfirmed} />
 			</div>
@@ -135,6 +142,23 @@
 		max-width: 1200px;
 		margin: 0 auto;
 		width: 100%;
+	}
+
+	.introduction {
+		background: white;
+		border-radius: 8px;
+		padding: 2rem;
+		margin-bottom: 1.5rem;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	}
+
+	.welcome-text {
+		font-size: 1.1rem;
+		line-height: 1.6;
+		color: #333;
+		margin: 0;
+		text-align: center;
+		font-family: Georgia, serif;
 	}
 
 	.camera-section {
