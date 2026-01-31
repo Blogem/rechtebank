@@ -10,7 +10,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"rechtebank/backend/internal/adapters/gemini"
 	httpAdapter "rechtebank/backend/internal/adapters/http"
 	"rechtebank/backend/internal/adapters/http/handlers"
@@ -18,6 +17,8 @@ import (
 	"rechtebank/backend/internal/adapters/validator"
 	"rechtebank/backend/internal/config"
 	"rechtebank/backend/internal/core/services"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -78,6 +79,10 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 	}
 
+	// Create context for cleanup goroutine
+	cleanupCtx, cleanupCancel := context.WithCancel(context.Background())
+	defer cleanupCancel()
+
 	// Start cleanup job in background
 	go func() {
 		ticker := time.NewTicker(24 * time.Hour) // Run daily
@@ -91,11 +96,17 @@ func main() {
 		}
 
 		// Then run daily
-		for range ticker.C {
-			if err := photoStorage.CleanupOldPhotos(cfg.PhotoRetentionDays); err != nil {
-				log.Printf("Warning: Failed to cleanup old photos: %v", err)
-			} else {
-				log.Printf("Photo cleanup completed successfully")
+		for {
+			select {
+			case <-cleanupCtx.Done():
+				log.Println("Cleanup job stopped")
+				return
+			case <-ticker.C:
+				if err := photoStorage.CleanupOldPhotos(cfg.PhotoRetentionDays); err != nil {
+					log.Printf("Warning: Failed to cleanup old photos: %v", err)
+				} else {
+					log.Printf("Photo cleanup completed successfully")
+				}
 			}
 		}
 	}()
@@ -114,6 +125,9 @@ func main() {
 	<-quit
 
 	log.Println("Shutting down server...")
+
+	// Cancel cleanup goroutine
+	cleanupCancel()
 
 	// Give outstanding requests 30 seconds to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
