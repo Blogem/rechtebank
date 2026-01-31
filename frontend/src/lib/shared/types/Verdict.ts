@@ -1,15 +1,27 @@
 // Verdict response from the backend API
+// Matches Go's VerdictResponse structure
 export interface Verdict {
-    /** Type of verdict rendered by the court */
-    type: 'niet-ontvankelijk' | 'guilty' | 'acquittal';
+    /** Whether the submitted item was identified as furniture */
+    admissible: boolean;
     /** Straightness score from 1-10 (10 being perfectly straight) */
     score: number;
-    /** Full verdict text in Dutch legal language */
-    verdictText: string;
-    /** Sentence or acknowledgment based on verdict type */
-    sentence?: string;
-    /** Angle deviation in degrees (if applicable) */
-    angleDeviation?: number;
-    /** Whether the submitted item was identified as furniture */
-    isFurniture: boolean;
+    /** Detailed verdict components */
+    verdict: VerdictDetails;
+    /** Unique request identifier */
+    requestId: string;
+    /** ISO 8601 timestamp of the verdict */
+    timestamp: string;
+}
+
+// Detailed verdict components
+// Matches Go's VerdictDetails structure
+export interface VerdictDetails {
+    /** The furniture offense (e.g., "Scheefhangende Zitting") */
+    crime: string;
+    /** The punishment or acknowledgment */
+    sentence: string;
+    /** Legal justification with fictitious law articles */
+    reasoning: string;
+    /** What the judge observed in the photo */
+    observation: string;
 }

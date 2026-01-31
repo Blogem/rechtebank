@@ -9,9 +9,11 @@
 	}
 
 	async function shareVerdict() {
+		const verdictText = verdict.admissible ? verdict.verdict.observation : verdict.verdict.crime;
+
 		const shareData = {
 			title: 'Vonnis van de Rechtbank voor Meubilair',
-			text: `${verdict.verdictText}\n\nScore: ${verdict.score}/10`,
+			text: `${verdictText}\n\nScore: ${verdict.score}/10`,
 			url: window.location.href
 		};
 
@@ -29,41 +31,25 @@
 		}
 
 		// Fallback: Copy verdict text to clipboard
-		const verdictText = `${getVerdictIcon()} Vonnis van de Rechtbank voor Meubilair\n\n${verdict.verdictText}\n\nScore: ${verdict.score}/10\n\n${verdict.sentence || ''}\n\nGevonnist op ${new Date().toLocaleDateString('nl-NL')}`;
+		const fullText = `${getVerdictIcon()} Vonnis van de Rechtbank voor Meubilair\n\n${verdictText}\n\nScore: ${verdict.score}/10\n\n${verdict.verdict.sentence}\n\nGevonnist op ${new Date(verdict.timestamp).toLocaleDateString('nl-NL')}`;
 
 		try {
-			await navigator.clipboard.writeText(verdictText);
+			await navigator.clipboard.writeText(fullText);
 			alert('Vonnis gekopieerd naar klembord!');
 		} catch (err) {
 			// Clipboard API failed, show alert with text to copy manually
-			alert('Kon niet delen. Kopieer deze tekst:\n\n' + verdictText);
+			alert('Kon niet delen. Kopieer deze tekst:\n\n' + fullText);
 		}
 	}
 
 	function getVerdictClass(): string {
-		switch (verdict.type) {
-			case 'niet-ontvankelijk':
-				return 'dismissed';
-			case 'guilty':
-				return 'guilty';
-			case 'acquittal':
-				return 'acquittal';
-			default:
-				return '';
-		}
+		if (!verdict.admissible) return 'dismissed';
+		return verdict.score >= 7 ? 'acquittal' : 'guilty';
 	}
 
 	function getVerdictIcon(): string {
-		switch (verdict.type) {
-			case 'niet-ontvankelijk':
-				return '🔨';
-			case 'guilty':
-				return '⚖️';
-			case 'acquittal':
-				return '🎉';
-			default:
-				return '📜';
-		}
+		if (!verdict.admissible) return '🔨';
+		return verdict.score >= 7 ? '🎉' : '⚖️';
 	}
 
 	function getScoreClass(score: number): string {
@@ -81,10 +67,11 @@
 	</div>
 
 	<div class="verdict-content">
-		{#if !verdict.isFurniture}
+		{#if !verdict.admissible}
 			<div class="case-dismissed">
 				<h2>Zaak Niet-Ontvankelijk</h2>
-				<p class="verdict-text">{verdict.verdictText}</p>
+				<p class="verdict-text">{verdict.verdict.crime}</p>
+				<p class="verdict-text">{verdict.verdict.observation}</p>
 				<p class="legal-note">
 					<em>Dit object is geen meubelstuk en valt buiten de jurisdictie van deze rechtbank.</em>
 				</p>
@@ -97,32 +84,31 @@
 
 			<div class="verdict-type">
 				<h2>
-					{#if verdict.type === 'acquittal'}
+					{#if verdict.score >= 7}
 						Vrijspraak
-					{:else if verdict.type === 'guilty'}
-						Schuldig Bevonden
 					{:else}
-						Niet-Ontvankelijk
+						Schuldig Bevonden
 					{/if}
 				</h2>
 			</div>
 
 			<div class="verdict-body">
-				<p class="verdict-text">{verdict.verdictText}</p>
+				<p class="verdict-text">{verdict.verdict.observation}</p>
 
-				{#if verdict.angleDeviation !== undefined}
-					<p class="angle-deviation">
-						<strong>Geconstateerde afwijking:</strong>
-						{verdict.angleDeviation}°
-					</p>
-				{/if}
+				<div class="crime-section">
+					<h3>Overtreding:</h3>
+					<p>{verdict.verdict.crime}</p>
+				</div>
 
-				{#if verdict.sentence}
-					<div class="sentence">
-						<h3>Uitspraak:</h3>
-						<p>{verdict.sentence}</p>
-					</div>
-				{/if}
+				<div class="reasoning-section">
+					<h3>Juridische Overwegingen:</h3>
+					<p>{verdict.verdict.reasoning}</p>
+				</div>
+
+				<div class="sentence">
+					<h3>Uitspraak:</h3>
+					<p>{verdict.verdict.sentence}</p>
+				</div>
 			</div>
 		{/if}
 	</div>
@@ -135,7 +121,7 @@
 
 	<div class="court-seal">
 		<p><em>Uitgesproken in het openbaar</em></p>
-		<p><small>{new Date().toLocaleDateString('nl-NL')}</small></p>
+		<p><small>{new Date(verdict.timestamp).toLocaleDateString('nl-NL')}</small></p>
 	</div>
 </div>
 
@@ -250,6 +236,21 @@
 	.sentence h3 {
 		color: #856404;
 		margin-top: 0;
+	}
+
+	.crime-section,
+	.reasoning-section {
+		background: #f8f9fa;
+		padding: 1.5rem;
+		border-left: 4px solid #2c3e50;
+		margin: 1.5rem 0;
+	}
+
+	.crime-section h3,
+	.reasoning-section h3 {
+		color: #2c3e50;
+		margin-top: 0;
+		font-size: 1.1rem;
 	}
 
 	.case-dismissed {
