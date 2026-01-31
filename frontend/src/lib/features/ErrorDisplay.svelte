@@ -4,6 +4,8 @@
 	export let onretry: ((event: CustomEvent) => void) | undefined = undefined;
 	export let onreset: ((event: CustomEvent) => void) | undefined = undefined;
 
+	let showTechnicalDetails = false;
+
 	function retry() {
 		onretry?.(new CustomEvent('retry'));
 	}
@@ -11,6 +13,38 @@
 	function reset() {
 		onreset?.(new CustomEvent('reset'));
 	}
+
+	function toggleDetails() {
+		showTechnicalDetails = !showTechnicalDetails;
+	}
+
+	// Extract user-friendly message from technical error
+	function getUserFriendlyMessage(errorMessage: string): string {
+		// Check for specific error patterns
+		if (errorMessage.includes('te lang beraadslaagd')) {
+			return 'De rechtbank heeft te lang nodig voor beraadslaging.';
+		}
+		if (errorMessage.includes('Server error (5')) {
+			return 'De rechtbank ondervindt momenteel technische problemen.';
+		}
+		if (errorMessage.includes('Server error (4')) {
+			return 'Het bewijsmateriaal kon niet worden geaccepteerd.';
+		}
+		if (errorMessage.includes('te groot') || errorMessage.includes('10MB')) {
+			return 'De ingediende foto is te groot voor beoordeling.';
+		}
+		if (
+			errorMessage.toLowerCase().includes('network') ||
+			errorMessage.includes('Failed to fetch')
+		) {
+			return 'De verbinding met de rechtbank is verbroken.';
+		}
+
+		// Generic fallback
+		return 'De rechtbank kan het bewijsmateriaal momenteel niet beoordelen.';
+	}
+
+	$: userFriendlyMessage = getUserFriendlyMessage(message);
 </script>
 
 <div class="error-display">
@@ -21,10 +55,22 @@
 
 	<div class="error-content">
 		<div class="error-icon">⚠️</div>
-		<p class="error-message">{message}</p>
+		<p class="error-message">{userFriendlyMessage}</p>
 
 		<div class="legal-language">
 			<p><em>De rechtbank kan op dit moment geen uitspraak doen.</em></p>
+		</div>
+
+		<div class="technical-details">
+			<button onclick={toggleDetails} class="details-toggle">
+				{showTechnicalDetails ? '▼' : '▶'} Technische details
+			</button>
+
+			{#if showTechnicalDetails}
+				<div class="details-content">
+					<pre>{message}</pre>
+				</div>
+			{/if}
 		</div>
 	</div>
 
@@ -127,5 +173,48 @@
 
 	.action-button.secondary:hover {
 		background: #5a6268;
+	}
+
+	.technical-details {
+		margin-top: 2rem;
+		padding-top: 1.5rem;
+		border-top: 1px solid #dee2e6;
+	}
+
+	.details-toggle {
+		background: transparent;
+		border: 1px solid #6c757d;
+		color: #6c757d;
+		padding: 0.5rem 1rem;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 0.9rem;
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		transition: all 0.3s;
+	}
+
+	.details-toggle:hover {
+		background: #6c757d;
+		color: white;
+	}
+
+	.details-content {
+		margin-top: 1rem;
+		background: #f8f9fa;
+		border: 1px solid #dee2e6;
+		border-radius: 4px;
+		padding: 1rem;
+		text-align: left;
+		max-height: 300px;
+		overflow-y: auto;
+	}
+
+	.details-content pre {
+		margin: 0;
+		font-family: 'Courier New', monospace;
+		font-size: 0.85rem;
+		color: #495057;
+		white-space: pre-wrap;
+		word-wrap: break-word;
 	}
 </style>
