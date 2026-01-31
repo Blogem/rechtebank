@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  backend:
+    ports: !reset [] # Remove all port mappings for production
+
+  frontend:
+    ports: !reset [] # Remove all port mappings for production
+    networks:
+      - rechtebank-network
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rechtbank.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.rechtbank.tls=true"
+      - "traefik.http.routers.rechtbank.tls.certresolver=lets-encrypt"
+      - "traefik.docker.network=proxy"
+
+networks:
+  proxy:
+    external: true
+    name: proxy
