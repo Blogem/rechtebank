@@ -39,14 +39,15 @@
 		padding: 2rem;
 		text-align: center;
 		background: #f5f5f5;
-		border-radius: 8px;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		border-radius: 2px;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		border-top: 3px solid #4a4a4a;
 	}
 
 	.warning {
 		background: #fff3cd;
 		border: 1px solid #ffc107;
-		border-radius: 4px;
+		border-radius: 2px;
 		padding: 1rem;
 		margin: 1rem 0;
 	}
@@ -57,7 +58,7 @@
 		border: none;
 		padding: 1rem 2rem;
 		font-size: 1.1rem;
-		border-radius: 4px;
+		border-radius: 2px;
 		cursor: pointer;
 		margin: 1rem 0;
 		transition: background 0.3s;

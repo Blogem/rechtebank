@@ -8,6 +8,37 @@
 		onreset?.(new CustomEvent('reset'));
 	}
 
+	function generateCaseNumber(timestamp: string): string {
+		const date = new Date(timestamp);
+		const year = date.getFullYear();
+		const timestampMs = date.getTime();
+		return `RVM-${year}-${timestampMs}`;
+	}
+
+	function formatDutchTimestamp(timestamp: string): string {
+		const date = new Date(timestamp);
+		const day = date.getDate();
+		const monthNames = [
+			'januari',
+			'februari',
+			'maart',
+			'april',
+			'mei',
+			'juni',
+			'juli',
+			'augustus',
+			'september',
+			'oktober',
+			'november',
+			'december'
+		];
+		const month = monthNames[date.getMonth()];
+		const year = date.getFullYear();
+		const hours = String(date.getHours()).padStart(2, '0');
+		const minutes = String(date.getMinutes()).padStart(2, '0');
+		return `Uitspraak d.d.: ${day} ${month} ${year}, ${hours}:${minutes}`;
+	}
+
 	async function shareVerdict() {
 		const verdictText = verdict.admissible ? verdict.verdict.observation : verdict.verdict.crime;
 
@@ -70,6 +101,12 @@
 		<h1>Vonnis van de Rechtbank voor Meubilair</h1>
 	</div>
 
+	<div class="case-metadata">
+		<p class="case-number">Zaaknummer: {generateCaseNumber(verdict.timestamp)}</p>
+		<p class="case-date">{formatDutchTimestamp(verdict.timestamp)}</p>
+	</div>
+	<hr class="metadata-separator" />
+
 	<div class="verdict-content">
 		{#if !verdict.admissible}
 			<div class="case-dismissed">
@@ -120,9 +157,9 @@
 	</div>
 
 	<div class="verdict-actions">
-		<button onclick={shareVerdict} class="action-button secondary"> 📤 Deel Vonnis </button>
+		<button onclick={shareVerdict} class="action-button secondary">Deel Vonnis</button>
 
-		<button onclick={resetFlow} class="action-button primary"> 🔄 Dien Ander Meubelstuk In </button>
+		<button onclick={resetFlow} class="action-button primary">Dien Ander Meubelstuk In</button>
 	</div>
 
 	<div class="court-seal">
@@ -137,9 +174,10 @@
 		margin: 2rem auto;
 		padding: 2rem;
 		background: #fff;
-		border-radius: 8px;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+		border-radius: 2px;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 		font-family: Georgia, serif;
+		border-top: 3px solid #4a4a4a;
 	}
 
 	.court-header {
@@ -158,6 +196,25 @@
 		color: #2c3e50;
 		font-size: 1.8rem;
 		margin: 0;
+		font-weight: 600;
+	}
+
+	.case-metadata {
+		text-align: center;
+		margin: 1.5rem 0;
+		font-size: 0.9rem;
+		color: #666;
+	}
+
+	.case-number,
+	.case-date {
+		margin: 0.5rem 0;
+	}
+
+	.metadata-separator {
+		border: none;
+		border-top: 2px solid #d1d1d1;
+		margin: 1.5rem 0;
 	}
 
 	.verdict-content {
@@ -168,7 +225,7 @@
 		text-align: center;
 		margin: 2rem 0;
 		padding: 2rem;
-		border-radius: 8px;
+		border-radius: 2px;
 	}
 
 	.score-number {
@@ -211,6 +268,7 @@
 	.verdict-type h2 {
 		color: #2c3e50;
 		font-size: 1.8rem;
+		font-weight: 600;
 	}
 
 	.verdict-body {
@@ -256,7 +314,7 @@
 	.reasoning-section h3 {
 		color: #2c3e50;
 		margin-top: 0;
-		font-size: 1.1rem;
+		font-weight: 600;
 	}
 
 	.case-dismissed {
@@ -267,6 +325,7 @@
 	.case-dismissed h2 {
 		color: #dc3545;
 		font-size: 2rem;
+		font-weight: 600;
 	}
 
 	.legal-note {
@@ -285,14 +344,20 @@
 	}
 
 	.action-button {
-		padding: 1rem 2rem;
+		padding: 0.75rem 1.5rem;
 		font-size: 1rem;
 		border: none;
-		border-radius: 4px;
+		border-radius: 2px;
 		cursor: pointer;
-		transition: all 0.3s;
+		transition: all 0.2s;
 		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 		font-weight: 500;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	}
+
+	.action-button:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 	}
 
 	.action-button.primary {
@@ -305,8 +370,12 @@
 	}
 
 	.action-button.secondary {
-		background: #6c757d;
+		background: #757575;
 		color: white;
+	}
+
+	.action-button.secondary:hover {
+		background: #616161;
 	}
 
 	.action-button.secondary:hover {

@@ -4,10 +4,6 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Build argument for API URL (used at build time)
-ARG PUBLIC_API_URL=http://localhost:8080
-ENV PUBLIC_API_URL=${PUBLIC_API_URL}
-
 # Copy package files
 COPY package*.json ./
 
@@ -17,7 +13,7 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the application (.env file will be used for PUBLIC_API_URL)
 RUN npm run build
 
 # Stage 2: Serve with Nginx Alpine

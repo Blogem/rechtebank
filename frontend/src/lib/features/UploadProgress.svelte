@@ -24,8 +24,9 @@
 		padding: 3rem 2rem;
 		text-align: center;
 		background: #f8f9fa;
-		border-radius: 8px;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+		border-radius: 2px;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		border-top: 3px solid #4a4a4a;
 	}
 
 	.court-icon {
@@ -54,7 +55,7 @@
 		width: 100%;
 		height: 30px;
 		background: #e9ecef;
-		border-radius: 15px;
+		border-radius: 2px;
 		overflow: hidden;
 		margin: 1.5rem 0;
 		box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -62,9 +63,9 @@
 
 	.progress-fill {
 		height: 100%;
-		background: linear-gradient(90deg, #2c3e50, #34495e);
+		background: #2c3e50;
 		transition: width 0.3s ease-out;
-		border-radius: 15px;
+		border-radius: 2px;
 	}
 
 	.legal-text {

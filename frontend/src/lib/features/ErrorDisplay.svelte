@@ -76,10 +76,10 @@
 
 	<div class="error-actions">
 		{#if retryable}
-			<button onclick={retry} class="action-button primary"> 🔄 Probeer Opnieuw </button>
+			<button onclick={retry} class="action-button primary">Probeer Opnieuw</button>
 		{/if}
 
-		<button onclick={reset} class="action-button secondary"> ← Terug naar Begin </button>
+		<button onclick={reset} class="action-button secondary">Terug naar Begin</button>
 	</div>
 </div>
 
@@ -88,10 +88,10 @@
 		max-width: 600px;
 		margin: 2rem auto;
 		padding: 2rem;
-		background: #fff;
-		border-radius: 8px;
-		border-top: 5px solid #dc3545;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+		background: #ffffff;
+		border-radius: 2px;
+		border-top: 3px solid #4a4a4a;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 		font-family: Georgia, serif;
 	}
 
@@ -150,7 +150,7 @@
 		padding: 1rem 2rem;
 		font-size: 1rem;
 		border: none;
-		border-radius: 4px;
+		border-radius: 2px;
 		cursor: pointer;
 		transition: all 0.3s;
 		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -186,7 +186,7 @@
 		border: 1px solid #6c757d;
 		color: #6c757d;
 		padding: 0.5rem 1rem;
-		border-radius: 4px;
+		border-radius: 2px;
 		cursor: pointer;
 		font-size: 0.9rem;
 		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -202,7 +202,7 @@
 		margin-top: 1rem;
 		background: #f8f9fa;
 		border: 1px solid #dee2e6;
-		border-radius: 4px;
+		border-radius: 2px;
 		padding: 1rem;
 		text-align: left;
 		max-height: 300px;

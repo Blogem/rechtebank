@@ -14,6 +14,7 @@
 	import UploadProgress from '$lib/features/UploadProgress.svelte';
 	import VerdictDisplay from '$lib/features/VerdictDisplay.svelte';
 	import ErrorDisplay from '$lib/features/ErrorDisplay.svelte';
+	import courtSeal from '$lib/assets/court-seal.png';
 
 	const apiAdapter = new ApiAdapter();
 
@@ -53,6 +54,11 @@
 		appState.set('camera-ready');
 	}
 
+	function handleRetry() {
+		// Go back to camera to retry the photo submission
+		appState.set('camera-ready');
+	}
+
 	function handleReset() {
 		resetAppState();
 	}
@@ -65,6 +71,7 @@
 
 <div class="app-container">
 	<header class="app-header">
+		<img src={courtSeal} alt="Court Seal" class="court-seal" />
 		<h1>⚖️ Rechtbank voor Meubilair</h1>
 		<p class="tagline">Uw meubels aan het oordeel onderworpen</p>
 	</header>
@@ -80,6 +87,7 @@
 					oordeel van de Eerwaarde Rechter.
 				</p>
 			</div>
+			<div class="section-divider"></div>
 			<div class="camera-section">
 				<PhotoCapture onPhotoConfirmed={handlePhotoConfirmed} />
 			</div>
@@ -88,7 +96,11 @@
 		{:else if $appState === 'showing-verdict' && $currentVerdict}
 			<VerdictDisplay verdict={$currentVerdict} onreset={handleReset} />
 		{:else if $appState === 'error'}
-			<ErrorDisplay message={$uploadError || 'Er is een fout opgetreden'} onreset={handleReset} />
+			<ErrorDisplay
+				message={$uploadError || 'Er is een fout opgetreden'}
+				onreset={handleReset}
+				onretry={handleRetry}
+			/>
 		{/if}
 	</main>
 
@@ -106,7 +118,7 @@
 		margin: 0;
 		padding: 0;
 		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		background: #fafafa;
 		min-height: 100vh;
 	}
 
@@ -117,17 +129,30 @@
 	}
 
 	.app-header {
-		background: rgba(0, 0, 0, 0.3);
+		background: #2e2e2e;
 		color: white;
 		text-align: center;
 		padding: 2rem 1rem;
 		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+		border-bottom: 3px solid #4a4a4a;
+		position: relative;
 	}
 
 	.app-header h1 {
 		margin: 0;
 		font-size: 2.5rem;
 		font-family: Georgia, serif;
+		font-weight: 600;
+	}
+
+	.court-seal {
+		position: absolute;
+		left: 2rem;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 80px;
+		height: 80px;
+		opacity: 0.95;
 	}
 
 	.tagline {
@@ -146,15 +171,16 @@
 
 	.introduction {
 		background: white;
-		border-radius: 8px;
+		border-radius: 2px;
 		padding: 2rem;
 		margin-bottom: 1.5rem;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		border-top: 3px solid #4a4a4a;
 	}
 
 	.welcome-text {
 		font-size: 1.1rem;
-		line-height: 1.6;
+		line-height: 1.7;
 		color: #333;
 		margin: 0;
 		text-align: center;
@@ -163,17 +189,25 @@
 
 	.camera-section {
 		background: white;
-		border-radius: 8px;
+		border-radius: 2px;
 		padding: 1.5rem;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		border-top: 3px solid #4a4a4a;
+	}
+
+	.section-divider {
+		height: 2px;
+		background: #d1d1d1;
+		margin: 1.5rem 0;
 	}
 
 	.app-footer {
-		background: rgba(0, 0, 0, 0.3);
+		background: #2e2e2e;
 		color: white;
 		text-align: center;
 		padding: 1.5rem 1rem;
 		margin-top: 2rem;
+		border-top: 3px solid #4a4a4a;
 	}
 
 	.app-footer p {
@@ -186,8 +220,24 @@
 			font-size: 1.8rem;
 		}
 
+		.court-seal {
+			width: 50px;
+			height: 50px;
+			left: 0.5rem;
+		}
+
 		.app-main {
 			padding: 1rem 0.5rem;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.app-header h1 {
+			font-size: 1.4rem;
+		}
+
+		.court-seal {
+			display: none;
 		}
 	}
 </style>

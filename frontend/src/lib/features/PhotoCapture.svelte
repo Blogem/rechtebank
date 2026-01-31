@@ -157,9 +157,7 @@ Provides a manual rotation control overlay and "bakes" rotation into the final i
 				aria-label="Upload foto"
 				class="hidden-input"
 			/>
-			<button onclick={triggerFileInput} class="button primary capture-button">
-				📷 Neem Foto
-			</button>
+			<button onclick={triggerFileInput} class="button primary capture-button"> Neem Foto </button>
 
 			{#if error}
 				<div class="error-message" role="alert">
@@ -186,11 +184,11 @@ Provides a manual rotation control overlay and "bakes" rotation into the final i
 
 			<div class="controls">
 				<button onclick={handleRetake} class="button secondary" disabled={isProcessing}>
-					🔄 Opnieuw
+					Opnieuw
 				</button>
 
 				<button onclick={handleConfirm} class="button primary" disabled={isProcessing}>
-					{isProcessing ? 'Verwerken...' : '✅ Bevestig'}
+					{isProcessing ? 'Verwerken...' : 'Bevestig'}
 				</button>
 			</div>
 
@@ -241,9 +239,9 @@ Provides a manual rotation control overlay and "bakes" rotation into the final i
 	.preview {
 		position: relative;
 		margin: 1rem 0;
-		border-radius: 8px;
+		border-radius: 2px;
 		overflow: hidden;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 		max-height: 70vh;
 		display: flex;
 		align-items: center;
@@ -300,15 +298,16 @@ Provides a manual rotation control overlay and "bakes" rotation into the final i
 	.button {
 		padding: 0.75rem 1.5rem;
 		border: none;
-		border-radius: 6px;
+		border-radius: 2px;
 		font-size: 1rem;
 		cursor: pointer;
 		transition: all 0.2s;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 	}
 
 	.button:hover:not(:disabled) {
 		transform: translateY(-2px);
-		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 	}
 
 	.button:disabled {
@@ -317,12 +316,12 @@ Provides a manual rotation control overlay and "bakes" rotation into the final i
 	}
 
 	.button.primary {
-		background: #4caf50;
+		background: #2c3e50;
 		color: white;
 	}
 
 	.button.primary:hover:not(:disabled) {
-		background: #45a049;
+		background: #34495e;
 	}
 
 	.button.secondary {
@@ -338,7 +337,7 @@ Provides a manual rotation control overlay and "bakes" rotation into the final i
 		color: #d32f2f;
 		background: #ffebee;
 		padding: 0.75rem;
-		border-radius: 4px;
+		border-radius: 2px;
 		margin-top: 1rem;
 		font-size: 0.9rem;
 	}
