@@ -1,13 +1,13 @@
 <!--
 @component
-PhotoCapture - Manual photo capture component with rotation controls
+PhotoCapture - Manual photo capture component with rotation control
 
 A self-contained component for capturing photos using native file input with camera access.
-Provides manual rotation controls and "bakes" rotation into the final image using canvas.
+Provides a manual rotation control overlay and "bakes" rotation into the final image using canvas.
 
 **Features:**
 - Native file input with camera capture (mobile-friendly)
-- Manual rotation controls (rotate left/right in 90° increments)
+- Manual rotation control (rotate clockwise in 90° increments via overlay button)
 - Initial rotation heuristic using screen.orientation API
 - Canvas-based rotation processing (no EXIF dependency)
 - Automatic memory management (URL cleanup)
@@ -29,7 +29,7 @@ Provides manual rotation controls and "bakes" rotation into the final image usin
 -->
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	import { rotateLeft, rotateRight } from '$lib/shared/utils/rotation';
+	import { rotateRight } from '$lib/shared/utils/rotation';
 	import {
 		getInitialRotation,
 		rotateImageOnCanvas,
@@ -88,10 +88,6 @@ Provides manual rotation controls and "bakes" rotation into the final image usin
 
 		// Set initial rotation based on screen orientation
 		rotation = getInitialRotation();
-	}
-
-	function handleRotateLeft() {
-		rotation = rotateLeft(rotation);
 	}
 
 	function handleRotateRight() {
@@ -178,28 +174,13 @@ Provides manual rotation controls and "bakes" rotation into the final image usin
 
 			<div class="preview">
 				<img src={photoUrl} alt="Preview" style="transform: rotate({rotation}deg);" />
-			</div>
-
-			<div class="rotation-hint">
-				<p>Staat de foto niet goed? Roteer hem eerst:</p>
-			</div>
-
-			<div class="rotation-controls">
-				<button
-					onclick={handleRotateLeft}
-					class="button button-rotation"
-					aria-label="Draai links"
-					disabled={isProcessing}
-				>
-					↶ Links
-				</button>
 				<button
 					onclick={handleRotateRight}
-					class="button button-rotation"
-					aria-label="Draai rechts"
+					class="rotation-button-overlay"
+					aria-label="Roteer foto 90 graden"
 					disabled={isProcessing}
 				>
-					↷ Rechts
+					↻
 				</button>
 			</div>
 
@@ -258,6 +239,7 @@ Provides manual rotation controls and "bakes" rotation into the final image usin
 	}
 
 	.preview {
+		position: relative;
 		margin: 1rem 0;
 		border-radius: 8px;
 		overflow: hidden;
@@ -276,27 +258,36 @@ Provides manual rotation controls and "bakes" rotation into the final image usin
 		transition: transform 0.3s ease;
 	}
 
-	.rotation-hint {
-		margin: 1rem 0 0.5rem 0;
-		text-align: center;
-	}
-
-	.rotation-hint p {
-		margin: 0;
-		font-size: 0.9rem;
-		color: #666;
-	}
-
-	.rotation-controls {
+	.rotation-button-overlay {
+		position: absolute;
+		bottom: 16px;
+		right: 16px;
+		z-index: 10;
+		background: rgba(0, 0, 0, 0.6);
+		color: white;
+		min-width: 48px;
+		min-height: 48px;
+		width: 48px;
+		height: 48px;
+		border: none;
+		border-radius: 50%;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+		font-size: 1.5rem;
+		cursor: pointer;
+		transition: all 0.2s ease;
 		display: flex;
-		gap: 1rem;
+		align-items: center;
 		justify-content: center;
-		margin: 1rem 0;
 	}
 
-	.button-rotation {
-		padding: 0.75rem 1.5rem;
-		font-size: 1.1rem;
+	.rotation-button-overlay:hover:not(:disabled) {
+		background: rgba(0, 0, 0, 0.8);
+		transform: scale(1.05);
+	}
+
+	.rotation-button-overlay:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
 	}
 
 	.controls {
@@ -358,10 +349,6 @@ Provides manual rotation controls and "bakes" rotation into the final image usin
 		}
 
 		.controls {
-			flex-direction: column;
-		}
-
-		.rotation-controls {
 			flex-direction: column;
 		}
 
