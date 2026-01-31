@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"rechtebank/backend/internal/core/domain"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"rechtebank/backend/internal/core/domain"
 )
 
 // MockAnalyzer mocks the IPhotoAnalyzer interface
@@ -51,9 +52,10 @@ func TestVerdictService_JudgePhoto_Success(t *testing.T) {
 		Admissible: true,
 		Score:      8,
 		Verdict: domain.VerdictDetails{
-			Crime:     "Rugleuning-afwijking",
-			Sentence:  "Lichte berisping",
-			Reasoning: "Artikel 42",
+			Crime:       "Rugleuning-afwijking",
+			Sentence:    "Lichte berisping",
+			Reasoning:   "Artikel 42",
+			VerdictType: "waarschuwing",
 		},
 	}
 
@@ -67,6 +69,7 @@ func TestVerdictService_JudgePhoto_Success(t *testing.T) {
 	assert.True(t, result.Admissible)
 	assert.Equal(t, 8, result.Score)
 	assert.Equal(t, "Rugleuning-afwijking", result.Verdict.Crime)
+	assert.Equal(t, "waarschuwing", result.Verdict.VerdictType)
 	assert.NotEmpty(t, result.RequestID)
 	assert.NotEmpty(t, result.Timestamp)
 	mockValidator.AssertExpectations(t)
@@ -138,9 +141,10 @@ func TestVerdictService_JudgePhoto_RequestIDFormat(t *testing.T) {
 		Admissible: true,
 		Score:      7,
 		Verdict: domain.VerdictDetails{
-			Crime:     "Test crime",
-			Sentence:  "Test sentence",
-			Reasoning: "Test reasoning",
+			Crime:       "Test crime",
+			Sentence:    "Test sentence",
+			Reasoning:   "Test reasoning",
+			VerdictType: "vrijspraak",
 		},
 	}
 
@@ -173,9 +177,10 @@ func TestVerdictService_JudgePhoto_TimestampFormat(t *testing.T) {
 		Admissible: true,
 		Score:      7,
 		Verdict: domain.VerdictDetails{
-			Crime:     "Test crime",
-			Sentence:  "Test sentence",
-			Reasoning: "Test reasoning",
+			Crime:       "Test crime",
+			Sentence:    "Test sentence",
+			Reasoning:   "Test reasoning",
+			VerdictType: "vrijspraak",
 		},
 	}
 
@@ -214,9 +219,10 @@ func TestVerdictService_JudgePhoto_UniqueRequestIDs(t *testing.T) {
 		Admissible: true,
 		Score:      7,
 		Verdict: domain.VerdictDetails{
-			Crime:     "Test crime",
-			Sentence:  "Test sentence",
-			Reasoning: "Test reasoning",
+			Crime:       "Test crime",
+			Sentence:    "Test sentence",
+			Reasoning:   "Test reasoning",
+			VerdictType: "vrijspraak",
 		},
 	}
 

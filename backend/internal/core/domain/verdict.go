@@ -16,6 +16,7 @@ type VerdictDetails struct {
 	Sentence    string `json:"sentence"`    // The punishment
 	Reasoning   string `json:"reasoning"`   // Legal justification
 	Observation string `json:"observation"` // What the judge observed
+	VerdictType string `json:"verdictType"` // The verdict classification: vrijspraak, waarschuwing, schuldig
 }
 
 // PhotoMetadata contains information about an uploaded photo

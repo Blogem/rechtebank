@@ -12,9 +12,10 @@ func TestVerdictResponse_JSONMarshaling(t *testing.T) {
 		Admissible: true,
 		Score:      8,
 		Verdict: VerdictDetails{
-			Crime:     "Rugleuning-afwijking van 5 graden",
-			Sentence:  "Veroordeeld tot lichte berisping",
-			Reasoning: "Artikel 42 van de Meubilair-wet",
+			Crime:       "Rugleuning-afwijking van 5 graden",
+			Sentence:    "Veroordeeld tot lichte berisping",
+			Reasoning:   "Artikel 42 van de Meubilair-wet",
+			VerdictType: "waarschuwing",
 		},
 		RequestID: "test-request-123",
 		Timestamp: "2026-01-30T10:00:00Z",
@@ -26,6 +27,7 @@ func TestVerdictResponse_JSONMarshaling(t *testing.T) {
 	assert.Contains(t, string(data), `"admissible":true`)
 	assert.Contains(t, string(data), `"score":8`)
 	assert.Contains(t, string(data), `"requestId":"test-request-123"`)
+	assert.Contains(t, string(data), `"verdictType":"waarschuwing"`)
 
 	// Test unmarshaling
 	var decoded VerdictResponse
@@ -35,6 +37,7 @@ func TestVerdictResponse_JSONMarshaling(t *testing.T) {
 	assert.Equal(t, verdict.Score, decoded.Score)
 	assert.Equal(t, verdict.RequestID, decoded.RequestID)
 	assert.Equal(t, verdict.Timestamp, decoded.Timestamp)
+	assert.Equal(t, verdict.Verdict.VerdictType, decoded.Verdict.VerdictType)
 }
 
 func TestVerdictDetails_AllFields(t *testing.T) {

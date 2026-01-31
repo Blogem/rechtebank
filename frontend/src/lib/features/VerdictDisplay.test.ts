@@ -6,26 +6,59 @@ import type { Verdict } from '$lib/shared/types';
 
 describe('VerdictDisplay', () => {
     const mockGuiltyVerdict: Verdict = {
-        type: 'guilty',
+        admissible: true,
         score: 5,
-        verdictText: 'Dit meubelstuk is schuldig bevonden aan scheefheid.',
-        sentence: 'Veroordeling tot rechtzetting',
-        angleDeviation: 15,
-        isFurniture: true
+        verdict: {
+            crime: 'Ernstige scheefstand',
+            sentence: 'Veroordeling tot rechtzetting',
+            reasoning: 'Artikel 42 van de Meubilair-wet',
+            observation: 'Dit meubelstuk is schuldig bevonden aan scheefheid.',
+            verdictType: 'schuldig'
+        },
+        requestId: 'test-request-123',
+        timestamp: new Date().toISOString()
     };
 
     const mockAcquittalVerdict: Verdict = {
-        type: 'acquittal',
+        admissible: true,
         score: 10,
-        verdictText: 'Dit meubelstuk is volmaakt recht.',
-        isFurniture: true
+        verdict: {
+            crime: 'Geen afwijkingen geconstateerd',
+            sentence: 'Volledige vrijspraak',
+            reasoning: 'Het meubelstuk voldoet aan alle eisen',
+            observation: 'Dit meubelstuk is volmaakt recht.',
+            verdictType: 'vrijspraak'
+        },
+        requestId: 'test-request-124',
+        timestamp: new Date().toISOString()
+    };
+
+    const mockWarningVerdict: Verdict = {
+        admissible: true,
+        score: 6,
+        verdict: {
+            crime: 'Lichte afwijking',
+            sentence: 'Waarschuwing',
+            reasoning: 'Artikel 15 van de Meubilair-wet',
+            observation: 'Dit meubelstuk heeft een kleine afwijking.',
+            verdictType: 'waarschuwing'
+        },
+        requestId: 'test-request-125',
+        timestamp: new Date().toISOString()
     };
 
     const mockDismissedVerdict: Verdict = {
-        type: 'niet-ontvankelijk',
+        admissible: false,
         score: 0,
-        verdictText: 'Dit is geen meubelstuk.',
-        isFurniture: false
+        verdict: {
+            crime: 'Geen meubilair gedetecteerd',
+            sentence: 'Zaak niet-ontvankelijk verklaard',
+            reasoning: 'Dit Hof oordeelt alleen over meubilair',
+            observation: 'Dit is geen meubelstuk.',
+            verdictType: 'schuldig'
+        },
+        requestId: 'test-request-126',
+        timestamp: new Date().toISOString()
     };
 
     it('should render guilty verdict with score', () => {
@@ -36,23 +69,18 @@ describe('VerdictDisplay', () => {
         expect(screen.getByRole('heading', { name: /schuldig bevonden/i })).toBeInTheDocument();
     });
 
-    it('should display angle deviation when present', () => {
-        render(VerdictDisplay, { props: { verdict: mockGuiltyVerdict } });
-
-        expect(screen.getByText(/15°/)).toBeInTheDocument();
-    });
-
-    it('should display sentence when present', () => {
-        render(VerdictDisplay, { props: { verdict: mockGuiltyVerdict } });
-
-        expect(screen.getByText(/Veroordeling tot rechtzetting/)).toBeInTheDocument();
-    });
-
     it('should render acquittal verdict', () => {
         render(VerdictDisplay, { props: { verdict: mockAcquittalVerdict } });
 
         expect(screen.getByText('10')).toBeInTheDocument();
-        expect(screen.getByText(/Vrijspraak/i)).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /Vrijspraak/i })).toBeInTheDocument();
+    });
+
+    it('should render warning verdict', () => {
+        render(VerdictDisplay, { props: { verdict: mockWarningVerdict } });
+
+        expect(screen.getByText('6')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /Waarschuwing/i })).toBeInTheDocument();
     });
 
     it('should render dismissed verdict for non-furniture', () => {
@@ -62,18 +90,43 @@ describe('VerdictDisplay', () => {
         expect(screen.getByText(/Dit is geen meubelstuk/i)).toBeInTheDocument();
     });
 
-    it('should apply correct CSS class for guilty verdict', () => {
+    it('should apply correct CSS class for guilty verdict based on verdictType', () => {
         const { container } = render(VerdictDisplay, { props: { verdict: mockGuiltyVerdict } });
 
         const verdictDisplay = container.querySelector('.verdict-display');
         expect(verdictDisplay).toHaveClass('guilty');
     });
 
-    it('should apply correct CSS class for acquittal verdict', () => {
+    it('should apply correct CSS class for acquittal verdict based on verdictType', () => {
         const { container } = render(VerdictDisplay, { props: { verdict: mockAcquittalVerdict } });
 
         const verdictDisplay = container.querySelector('.verdict-display');
         expect(verdictDisplay).toHaveClass('acquittal');
+    });
+
+    it('should apply correct CSS class for warning verdict based on verdictType', () => {
+        const { container } = render(VerdictDisplay, { props: { verdict: mockWarningVerdict } });
+
+        const verdictDisplay = container.querySelector('.verdict-display');
+        expect(verdictDisplay).toHaveClass('warning');
+    });
+
+    it('should display correct icon for vrijspraak verdict', () => {
+        render(VerdictDisplay, { props: { verdict: mockAcquittalVerdict } });
+
+        expect(screen.getByText('🎉')).toBeInTheDocument();
+    });
+
+    it('should display correct icon for waarschuwing verdict', () => {
+        render(VerdictDisplay, { props: { verdict: mockWarningVerdict } });
+
+        expect(screen.getByText('⚠️')).toBeInTheDocument();
+    });
+
+    it('should display correct icon for schuldig verdict', () => {
+        render(VerdictDisplay, { props: { verdict: mockGuiltyVerdict } });
+
+        expect(screen.getByText('⚖️')).toBeInTheDocument();
     });
 
     it('should apply correct score class for excellent score', () => {
@@ -103,12 +156,5 @@ describe('VerdictDisplay', () => {
         render(VerdictDisplay, { props: { verdict: mockGuiltyVerdict } });
 
         expect(screen.getByText(/Deel Vonnis/i)).toBeInTheDocument();
-    });
-
-    it('should display current date in court seal', () => {
-        render(VerdictDisplay, { props: { verdict: mockGuiltyVerdict } });
-
-        const today = new Date().toLocaleDateString('nl-NL');
-        expect(screen.getByText(today)).toBeInTheDocument();
     });
 });

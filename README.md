@@ -6,9 +6,17 @@ A comedic web application that puts your furniture on trial. Upload a photo of y
 
 The Furniture Court ("Rechtbank voor Meubilair") analyzes furniture photos using Google's Gemini AI to deliver humorous legal judgments. If your furniture doesn't meet the strict standards of the Furniture Law, expect a sentence ranging from "re-orientation therapy" to "immediate scrapping."
 
+**Verdict System:**
+The court delivers verdicts in three categories:
+- **Vrijspraak** (Acquittal): For well-aligned furniture (typically scores 8-10)
+- **Waarschuwing** (Warning): For borderline cases with minor violations (typically scores 6-7)
+- **Schuldig** (Guilty): For serious alignment violations (typically scores 1-5)
+
 **Example Verdict:**
+- **Verdict Type**: Waarschuwing
+- **Score**: 7/10
 - **Crime**: Slight backrest deviation of 3 degrees
-- **Sentence**: Acquitted with a warning
+- **Sentence**: Warning with mandatory observation
 - **Reasoning**: While Article 12 of the Furniture Act requires strict straightness, the court considers this minimal deviation excusable given the otherwise impeccable condition of the piece.
 
 ## Architecture

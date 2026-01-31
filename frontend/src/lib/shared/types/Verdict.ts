@@ -24,4 +24,6 @@ export interface VerdictDetails {
     reasoning: string;
     /** What the judge observed in the photo */
     observation: string;
+    /** The verdict classification */
+    verdictType: "vrijspraak" | "waarschuwing" | "schuldig";
 }

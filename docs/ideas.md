@@ -3,5 +3,5 @@
 - Put rotation button on the photo (one button, just rotate it clock wise)
 - Improve the share option: share with photo
 
-# AI
-- Add verdict (vrijspraak, etc) to the LLM response, instead of infering it based on the rank.
+# Deployment
+- Create something to automatically deploy the solution to the VM when merging/pushing to main

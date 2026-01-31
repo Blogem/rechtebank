@@ -90,7 +90,7 @@ func TestIntegration_AnalyzePhoto_MinimalImage(t *testing.T) {
 	require.NotNil(t, result)
 
 	// Verify response structure
-	t.Logf("Response: admissible=%v, score=%d", result.Admissible, result.Score)
+	t.Logf("Response: admissible=%v, score=%d, verdictType=%s", result.Admissible, result.Score, result.Verdict.VerdictType)
 	t.Logf("Crime: %s", result.Verdict.Crime)
 	t.Logf("Sentence: %s", result.Verdict.Sentence)
 	t.Logf("Reasoning: %s", result.Verdict.Reasoning)
@@ -101,6 +101,7 @@ func TestIntegration_AnalyzePhoto_MinimalImage(t *testing.T) {
 	assert.NotEmpty(t, result.Verdict.Crime)
 	assert.NotEmpty(t, result.Verdict.Sentence)
 	assert.NotEmpty(t, result.Verdict.Reasoning)
+	assert.NotEmpty(t, result.Verdict.VerdictType, "VerdictType field should be present")
 }
 
 func TestIntegration_AnalyzePhoto_ResponseFormat(t *testing.T) {
@@ -130,6 +131,11 @@ func TestIntegration_AnalyzePhoto_ResponseFormat(t *testing.T) {
 	assert.NotEmpty(t, result.Verdict.Crime, "Crime field should not be empty")
 	assert.NotEmpty(t, result.Verdict.Sentence, "Sentence field should not be empty")
 	assert.NotEmpty(t, result.Verdict.Reasoning, "Reasoning field should not be empty")
+	assert.NotEmpty(t, result.Verdict.VerdictType, "VerdictType field should not be empty")
+
+	// VerdictType should be one of the valid enum values
+	validVerdictTypes := []string{"vrijspraak", "waarschuwing", "schuldig"}
+	assert.Contains(t, validVerdictTypes, result.Verdict.VerdictType, "VerdictType should be one of: vrijspraak, waarschuwing, schuldig")
 
 	// If not admissible, score should be 0
 	if !result.Admissible {

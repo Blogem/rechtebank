@@ -67,6 +67,11 @@ GEBRUIK DE VOLGENDE RICHTLIJNEN:
 - observation: Wat de rechter ziet
 - admissible: true/false
 - score: 1-10
+- verdictType: Bepaal het vonnis op basis van de analyse:
+  * "vrijspraak" - Gebruik voor scores 8-10 OF wanneer het meubilair uitzonderlijke uitlijning en karakter toont
+  * "waarschuwing" - Gebruik voor scores 6-7 OF bij lichte overtredingen die geen veroordeling rechtvaardigen
+  * "schuldig" - Gebruik voor scores 1-5 OF bij duidelijke, ernstige schendingen van de meubilair-uitlijningswetten
+  LET OP: De verdictType is jouw oordeel als rechter. Je mag context overwegen die verder gaat dan alleen de numerieke score.
 - crime: De juridische naam van de afwijking
 - reasoning: Juridische onderbouwing met fictieve wetsartikelen
 - sentence: De humoristische straf of de volledige vrijspraak
@@ -93,6 +98,7 @@ type VerdictSchema struct {
 	Crime       string `json:"crime"`
 	Sentence    string `json:"sentence"`
 	Reasoning   string `json:"reasoning"`
+	VerdictType string `json:"verdictType"`
 }
 
 // RealGeminiClient wraps the actual Gemini API client
@@ -122,8 +128,12 @@ func NewRealGeminiClient(ctx context.Context, apiKey string) (*RealGeminiClient,
 			"sentence":    {Type: genai.TypeString},
 			"reasoning":   {Type: genai.TypeString},
 			"observation": {Type: genai.TypeString},
+			"verdictType": {
+				Type: genai.TypeString,
+				Enum: []string{"vrijspraak", "waarschuwing", "schuldig"},
+			},
 		},
-		Required: []string{"admissible", "score", "crime", "sentence", "reasoning", "observation"},
+		Required: []string{"admissible", "score", "crime", "sentence", "reasoning", "observation", "verdictType"},
 	}
 
 	return &RealGeminiClient{
@@ -174,8 +184,8 @@ func (c *RealGeminiClient) GenerateContent(ctx context.Context, imageData []byte
 		return nil, &InvalidResponseError{Message: fmt.Sprintf("failed to parse response: %v", err)}
 	}
 
-	log.Printf("[GEMINI] Parsed verdict: admissible=%v, score=%d, crime=%s",
-		schema.Admissible, schema.Score, schema.Crime)
+	log.Printf("[GEMINI] Parsed verdict: admissible=%v, score=%d, crime=%s, verdictType=%s",
+		schema.Admissible, schema.Score, schema.Crime, schema.VerdictType)
 
 	return &GeminiResponse{
 		Admissible:  schema.Admissible,
@@ -184,6 +194,7 @@ func (c *RealGeminiClient) GenerateContent(ctx context.Context, imageData []byte
 		Sentence:    schema.Sentence,
 		Reasoning:   schema.Reasoning,
 		Observation: schema.Observation,
+		VerdictType: schema.VerdictType,
 		RawJSON:     rawJSON,
 	}, nil
 }
@@ -252,6 +263,7 @@ type GeminiResponse struct {
 	Sentence    string
 	Reasoning   string
 	Observation string
+	VerdictType string
 	RawJSON     string // The raw JSON string from Gemini
 }
 
@@ -303,6 +315,7 @@ func (a *GeminiAnalyzer) AnalyzePhoto(ctx context.Context, imageData []byte) (*d
 					Sentence:    response.Sentence,
 					Reasoning:   response.Reasoning,
 					Observation: response.Observation,
+					VerdictType: response.VerdictType,
 				},
 				RawJSON: response.RawJSON,
 			}, nil

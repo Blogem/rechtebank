@@ -44,12 +44,16 @@
 
 	function getVerdictClass(): string {
 		if (!verdict.admissible) return 'dismissed';
-		return verdict.score >= 7 ? 'acquittal' : 'guilty';
+		if (verdict.verdict.verdictType === 'vrijspraak') return 'acquittal';
+		if (verdict.verdict.verdictType === 'waarschuwing') return 'warning';
+		return 'guilty';
 	}
 
 	function getVerdictIcon(): string {
 		if (!verdict.admissible) return '🔨';
-		return verdict.score >= 7 ? '🎉' : '⚖️';
+		if (verdict.verdict.verdictType === 'vrijspraak') return '🎉';
+		if (verdict.verdict.verdictType === 'waarschuwing') return '⚠️';
+		return '⚖️';
 	}
 
 	function getScoreClass(score: number): string {
@@ -84,8 +88,10 @@
 
 			<div class="verdict-type">
 				<h2>
-					{#if verdict.score >= 7}
+					{#if verdict.verdict.verdictType === 'vrijspraak'}
 						Vrijspraak
+					{:else if verdict.verdict.verdictType === 'waarschuwing'}
+						Waarschuwing
 					{:else}
 						Schuldig Bevonden
 					{/if}
@@ -322,6 +328,10 @@
 
 	.verdict-display.acquittal {
 		border-top: 5px solid #28a745;
+	}
+
+	.verdict-display.warning {
+		border-top: 5px solid #ff9800;
 	}
 
 	.verdict-display.dismissed {

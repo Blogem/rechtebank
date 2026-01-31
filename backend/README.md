@@ -53,12 +53,22 @@ curl -X POST http://localhost:8080/v1/judge \
   "verdict": {
     "crime": "Lichte rugleuning-afwijking van 3 graden",
     "sentence": "Vrijgesproken met een waarschuwing",
-    "reasoning": "Hoewel artikel 12 van de Meubilair-wet strikte rechtheid vereist, acht de rechtbank deze minimale afwijking verschoonbaar gezien de verder onberispelijke staat van het meubelstuk."
+    "reasoning": "Hoewel artikel 12 van de Meubilair-wet strikte rechtheid vereist, acht de rechtbank deze minimale afwijking verschoonbaar gezien de verder onberispelijke staat van het meubelstuk.",
+    "observation": "Een houten zetel met groene ribstof, lichte afwijking van verticale norm geconstateerd.",
+    "verdictType": "vrijspraak"
   },
   "requestId": "550e8400-e29b-41d4-a716-446655440000",
   "timestamp": "2026-01-31T10:30:00Z"
 }
 ```
+
+**Verdict Types:**
+The `verdictType` field indicates the court's decision:
+- `"vrijspraak"` - Acquittal (typically scores 8-10, or exceptional alignment)
+- `"waarschuwing"` - Warning (typically scores 6-7, or minor violations)
+- `"schuldig"` - Guilty (typically scores 1-5, or serious violations)
+
+Note: The LLM determines the verdict type based on its analysis and may consider context beyond just the numeric score.
 
 **Non-Furniture Response (200 OK):**
 ```json
