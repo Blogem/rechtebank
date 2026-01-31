@@ -22,10 +22,16 @@ describe('ApiAdapter', () => {
         it('should upload photo as multipart/form-data', async () => {
             const mockBlob = new Blob(['test'], { type: 'image/jpeg' });
             const mockVerdict = {
-                type: 'guilty',
+                admissible: true,
                 score: 5,
-                verdictText: 'Test verdict',
-                isFurniture: true
+                verdict: {
+                    crime: 'Scheefhangende Zitting',
+                    sentence: 'Test sentence',
+                    reasoning: 'Test reasoning',
+                    observation: 'Test observation'
+                },
+                requestId: 'test-id',
+                timestamp: new Date().toISOString()
             };
 
             mockFetch.mockResolvedValue({

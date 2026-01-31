@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"rechtebank/backend/internal/core/domain"
@@ -72,6 +73,18 @@ GEBRUIK DE VOLGENDE RICHTLIJNEN:
 
 WEES CREATIEF, HUMORISTISCH EN OVERDREVEN FORMEEL IN JE JURIDISCHE TAALGEBRUIK!`
 
+const userPrompt = "Analyseer dit meubelstuk en spreek je vonnis uit."
+
+// GetSystemPrompt returns the system prompt used by the Gemini analyzer
+func GetSystemPrompt() string {
+	return systemPrompt
+}
+
+// GetUserPrompt returns the user prompt sent with each image
+func GetUserPrompt() string {
+	return userPrompt
+}
+
 // VerdictSchema defines the JSON schema for Gemini structured output
 type VerdictSchema struct {
 	Observation string `json:"observation"`
@@ -127,29 +140,42 @@ func (c *RealGeminiClient) GenerateContent(ctx context.Context, imageData []byte
 		return nil, errors.New("unsupported image format")
 	}
 
+	log.Printf("[GEMINI] Sending to API: size=%d bytes, mimeType=%s", len(imageData), mimeType)
+
 	resp, err := c.model.GenerateContent(ctx,
 		genai.ImageData(mimeType, imageData),
-		genai.Text("Analyseer dit meubelstuk en spreek je vonnis uit."),
+		genai.Text(userPrompt),
 	)
 	if err != nil {
+		log.Printf("[GEMINI] API error: %v", err)
 		return nil, err
 	}
 
 	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
+		log.Printf("[GEMINI] Empty response from API")
 		return nil, &InvalidResponseError{Message: "empty response from Gemini"}
 	}
 
 	// Extract text from response
 	textPart, ok := resp.Candidates[0].Content.Parts[0].(genai.Text)
 	if !ok {
+		log.Printf("[GEMINI] Unexpected response format")
 		return nil, &InvalidResponseError{Message: "unexpected response format"}
 	}
+
+	// Store raw JSON
+	rawJSON := string(textPart)
+	log.Printf("[GEMINI] Raw API response: %s", rawJSON)
 
 	// Parse JSON response
 	var schema VerdictSchema
 	if err := json.Unmarshal([]byte(textPart), &schema); err != nil {
+		log.Printf("[GEMINI] Failed to parse JSON: %v", err)
 		return nil, &InvalidResponseError{Message: fmt.Sprintf("failed to parse response: %v", err)}
 	}
+
+	log.Printf("[GEMINI] Parsed verdict: admissible=%v, score=%d, crime=%s",
+		schema.Admissible, schema.Score, schema.Crime)
 
 	return &GeminiResponse{
 		Admissible:  schema.Admissible,
@@ -158,6 +184,7 @@ func (c *RealGeminiClient) GenerateContent(ctx context.Context, imageData []byte
 		Sentence:    schema.Sentence,
 		Reasoning:   schema.Reasoning,
 		Observation: schema.Observation,
+		RawJSON:     rawJSON,
 	}, nil
 }
 
@@ -225,6 +252,7 @@ type GeminiResponse struct {
 	Sentence    string
 	Reasoning   string
 	Observation string
+	RawJSON     string // The raw JSON string from Gemini
 }
 
 // GeminiClientInterface defines the interface for the Gemini client
@@ -271,10 +299,12 @@ func (a *GeminiAnalyzer) AnalyzePhoto(ctx context.Context, imageData []byte) (*d
 				Admissible: response.Admissible,
 				Score:      response.Score,
 				Verdict: domain.VerdictDetails{
-					Crime:     response.Crime,
-					Sentence:  response.Sentence,
-					Reasoning: response.Reasoning,
+					Crime:       response.Crime,
+					Sentence:    response.Sentence,
+					Reasoning:   response.Reasoning,
+					Observation: response.Observation,
 				},
+				RawJSON: response.RawJSON,
 			}, nil
 		}
 

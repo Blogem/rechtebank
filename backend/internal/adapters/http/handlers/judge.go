@@ -4,11 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
+	"log"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"rechtebank/backend/internal/core/domain"
+
+	"github.com/gin-gonic/gin"
 )
 
 // VerdictServiceInterface defines the interface for the verdict service
@@ -18,7 +22,7 @@ type VerdictServiceInterface interface {
 
 // PhotoStorageInterface defines the interface for photo storage
 type PhotoStorageInterface interface {
-	SavePhoto(imageData []byte, requestID string) (string, error)
+	SavePhoto(imageData []byte, llmResponse []byte, requestID string) (string, error)
 }
 
 // JudgeHandler handles POST /v1/judge requests
@@ -66,6 +70,10 @@ func (h *JudgeHandler) Handle(c *gin.Context) {
 		Size:        int64(len(imageData)),
 	}
 
+	// Log incoming photo details
+	log.Printf("[JUDGE] Incoming photo: filename=%s, size=%d bytes, content-type=%s",
+		metadata.Filename, metadata.Size, metadata.ContentType)
+
 	// Call service
 	result, err := h.service.JudgePhoto(c.Request.Context(), imageData, metadata)
 	if err != nil {
@@ -73,10 +81,15 @@ func (h *JudgeHandler) Handle(c *gin.Context) {
 		return
 	}
 
+	// Log the Gemini response
+	log.Printf("[JUDGE] Gemini response: admissible=%v, score=%d, requestID=%s",
+		result.Admissible, result.Score, result.RequestID)
+	log.Printf("[JUDGE] Gemini raw JSON: %s", result.RawJSON)
+
 	// Save photo to disk (async, don't fail request if this fails)
 	if h.storage != nil && result.RequestID != "" {
 		go func() {
-			if _, err := h.storage.SavePhoto(imageData, result.RequestID); err != nil {
+			if _, err := h.storage.SavePhoto(imageData, []byte(result.RawJSON), result.RequestID); err != nil {
 				// Log error but don't fail the request
 				fmt.Printf("Failed to save photo: %v\n", err)
 			}
