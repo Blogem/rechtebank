@@ -19,9 +19,17 @@ export default defineConfig({
 		conditions: ['browser']
 	},
 	server: {
+		host: '0.0.0.0', // Allow access from other devices on network
 		https: {
-			key: fs.readFileSync('./localhost+1-key.pem'),
-			cert: fs.readFileSync('./localhost+1.pem')
+			key: fs.readFileSync('../192.168.1.37+1-key.pem'),
+			cert: fs.readFileSync('../192.168.1.37+1.pem')
+		},
+		proxy: {
+			'/v1': {
+				target: 'http://localhost:8080',
+				changeOrigin: true,
+				secure: false
+			}
 		}
 	},
 	// Environment variable prefix for client-side access

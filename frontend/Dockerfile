@@ -4,6 +4,10 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Build argument for API URL (used at build time)
+ARG PUBLIC_API_URL=http://localhost:8080
+ENV PUBLIC_API_URL=${PUBLIC_API_URL}
+
 # Copy package files
 COPY package*.json ./
 

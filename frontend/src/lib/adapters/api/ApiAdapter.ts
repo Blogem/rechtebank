@@ -16,19 +16,26 @@ export class ApiAdapter implements IApiPort {
     /**
      * Upload a photo to the backend for judgment
      */
-    async uploadPhoto(photo: Blob, metadata: PhotoMetadata): Promise<Verdict> {
-        // Ensure photo is JPEG format
-        const jpegBlob = await this.convertToJPEG(photo);
+    async uploadPhoto(photo: Blob, metadata: PhotoMetadata, rotation: number = 0): Promise<Verdict> {
+        // Apply rotation if needed, then convert to JPEG
+        let processedBlob = photo;
+
+        if (rotation !== 0) {
+            processedBlob = await this.applyRotation(photo, rotation);
+        } else {
+            // No rotation needed, just ensure JPEG format
+            processedBlob = await this.convertToJPEG(photo);
+        }
 
         // Validate file size (10MB max)
         const maxSize = 10 * 1024 * 1024;
-        if (jpegBlob.size > maxSize) {
+        if (processedBlob.size > maxSize) {
             throw new Error('Foto is te groot. Maximaal 10MB toegestaan.');
         }
 
         // Prepare form data
         const formData = new FormData();
-        formData.append('photo', jpegBlob, 'furniture.jpg');
+        formData.append('photo', processedBlob, 'furniture.jpg');
         formData.append('userAgent', metadata.userAgent);
         formData.append('timestamp', metadata.timestamp);
         formData.append('captureMethod', metadata.captureMethod);
@@ -38,10 +45,68 @@ export class ApiAdapter implements IApiPort {
     }
 
     /**
+     * Apply rotation to an image
+     */
+    private async applyRotation(blob: Blob, rotation: number): Promise<Blob> {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const url = URL.createObjectURL(blob);
+
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                if (!ctx) {
+                    URL.revokeObjectURL(url);
+                    reject(new Error('Failed to get canvas context'));
+                    return;
+                }
+
+                // Determine canvas size based on rotation
+                // For 90° and 270° rotations, swap width and height
+                const needsSwap = rotation === 90 || rotation === 270;
+                const width = img.naturalWidth || img.width;
+                const height = img.naturalHeight || img.height;
+
+                canvas.width = needsSwap ? height : width;
+                canvas.height = needsSwap ? width : height;
+
+                // Apply rotation transform
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate((rotation * Math.PI) / 180);
+                ctx.drawImage(img, -width / 2, -height / 2, width, height);
+
+                URL.revokeObjectURL(url);
+
+                canvas.toBlob(
+                    (rotatedBlob) => {
+                        if (rotatedBlob) {
+                            resolve(rotatedBlob);
+                        } else {
+                            reject(new Error('Failed to create rotated image'));
+                        }
+                    },
+                    'image/jpeg',
+                    0.9
+                );
+            };
+
+            img.onerror = () => {
+                URL.revokeObjectURL(url);
+                reject(new Error('Failed to load image for rotation'));
+            };
+
+            img.src = url;
+        });
+    }
+
+    /**
      * Convert image blob to JPEG format
+     * Used when no rotation is needed
      */
     private async convertToJPEG(blob: Blob): Promise<Blob> {
         // If already JPEG, return as-is
+        // (EXIF orientation will be handled by browser when displaying/processing)
         if (blob.type === 'image/jpeg') {
             return blob;
         }
@@ -53,15 +118,17 @@ export class ApiAdapter implements IApiPort {
 
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
+                canvas.width = img.naturalWidth || img.width;
+                canvas.height = img.naturalHeight || img.height;
 
                 const ctx = canvas.getContext('2d');
                 if (!ctx) {
                     reject(new Error('Failed to get canvas context'));
+                    URL.revokeObjectURL(url);
                     return;
                 }
 
+                // Browser automatically applies EXIF orientation when drawing
                 ctx.drawImage(img, 0, 0);
                 URL.revokeObjectURL(url);
 

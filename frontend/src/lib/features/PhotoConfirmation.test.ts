@@ -63,4 +63,66 @@ describe('PhotoConfirmation', () => {
 
         expect(confirmHandler).toHaveBeenCalledTimes(1);
     });
+
+    it('should apply rotation style to image', () => {
+        render(PhotoConfirmation, {
+            props: {
+                photoUrl: mockPhotoUrl,
+                rotation: 90
+            }
+        });
+
+        const img = screen.getByAltText(/Captured furniture/i) as HTMLImageElement;
+        expect(img.style.transform).toBe('rotate(90deg)');
+    });
+
+    it('should show rotation controls', () => {
+        render(PhotoConfirmation, { props: { photoUrl: mockPhotoUrl } });
+
+        expect(screen.getByText(/Links/i)).toBeInTheDocument();
+        expect(screen.getByText(/Rechts/i)).toBeInTheDocument();
+        expect(screen.getByText(/Staat de foto niet goed/i)).toBeInTheDocument();
+    });
+
+    it('should emit rotate event when rotate left clicked', async () => {
+        const user = userEvent.setup();
+        const rotateHandler = vi.fn();
+        render(PhotoConfirmation, {
+            props: {
+                photoUrl: mockPhotoUrl,
+                onrotate: rotateHandler
+            }
+        });
+
+        const rotateLeftButton = screen.getByText(/Links/i);
+        await user.click(rotateLeftButton);
+
+        expect(rotateHandler).toHaveBeenCalledTimes(1);
+        expect(rotateHandler).toHaveBeenCalledWith(
+            expect.objectContaining({
+                detail: { direction: 'left' }
+            })
+        );
+    });
+
+    it('should emit rotate event when rotate right clicked', async () => {
+        const user = userEvent.setup();
+        const rotateHandler = vi.fn();
+        render(PhotoConfirmation, {
+            props: {
+                photoUrl: mockPhotoUrl,
+                onrotate: rotateHandler
+            }
+        });
+
+        const rotateRightButton = screen.getByText(/Rechts/i);
+        await user.click(rotateRightButton);
+
+        expect(rotateHandler).toHaveBeenCalledTimes(1);
+        expect(rotateHandler).toHaveBeenCalledWith(
+            expect.objectContaining({
+                detail: { direction: 'right' }
+            })
+        );
+    });
 });

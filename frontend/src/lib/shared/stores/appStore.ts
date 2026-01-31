@@ -18,6 +18,9 @@ export const cameraStream = writable<MediaStream | null>(null);
 export const cameraPermissionGranted = writable<boolean>(false);
 export const capturedPhoto = writable<Blob | null>(null);
 
+// Photo rotation state (0, 90, 180, 270 degrees)
+export const photoRotation = writable<number>(0);
+
 // Orientation state
 export const orientationData = writable<OrientationData | null>(null);
 export const orientationPermissionGranted = writable<boolean>(false);
@@ -45,6 +48,7 @@ export function resetAppState() {
     appState.set('requesting-permissions');
     cameraStream.set(null);
     capturedPhoto.set(null);
+    photoRotation.set(0);
     orientationData.set(null);
     uploadProgress.set(0);
     uploadError.set(null);
