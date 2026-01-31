@@ -204,14 +204,118 @@ npm run test
 
 ## Deployment
 
-The application is designed for containerized deployment using Docker Compose. Both frontend and backend use multi-stage Docker builds for optimized production images.
+The application uses Docker Compose with environment-specific configurations:
+- **Local development**: Uses [docker-compose.yml](docker-compose.yml) with exposed ports
+- **Production**: Combines base + [docker-compose.prod.yml](docker-compose.prod.yml) for Traefik integration
 
-### Production Build
+### Local/Development Deployment
+
 ```bash
 docker-compose up -d --build
 ```
 
+This runs with ports exposed (backend: 8080, frontend: 5173) without requiring Traefik.
+
+### Production Deployment with Traefik
+
+The application integrates with Traefik reverse proxy for SSL termination and routing.
+
+**Prerequisites:**
+- Linux VM with Docker and Docker Compose installed
+- Traefik reverse proxy running with network named `proxy`
+- Domain name pointing to your VM
+- SSH access to the VM
+
+**Required GitHub Secrets:**
+
+Configure the following secrets in your GitHub repository settings (Settings → Secrets and variables → Actions):
+
+| Secret | Description | Example |
+|--------|-------------|---------|
+| `VM_IP` | IP address or hostname of your VM | `192.168.1.100` or `vm.example.com` |
+| `VM_USER` | SSH username for deployment | `deploy` or `ubuntu` |
+| `SSH_PRIVATE_KEY` | SSH private key for authentication | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
+| `GEMINI_API_KEY` | Google Gemini API key | `AIzaSyD...` |
+| `DOMAIN` | Production domain name | `rechtbank.example.com` |
+
+**VM Setup:**
+
+1. Clone the repository to deployment directory:
+```bash
+# On your VM
+sudo mkdir -p /opt/rechtbank
+sudo chown $USER:$USER /opt/rechtbank
+cd /opt/rechtbank
+git clone <your-repo-url> .
+```
+
+2. Verify Traefik is running with proxy network:
+```bash
+docker network ls | grep proxy
+```
+
+3. Ensure SSH key authentication is enabled for the deployment user
+
+**Deployment Process:**
+
+The application automatically deploys when code is pushed to the `main` branch:
+
+1. Push to main branch triggers GitHub Actions workflow
+2. Workflow connects to VM via SSH
+3. Pulls latest code from repository
+4. Creates `.env` file with production secrets
+5. Rebuilds and restarts containers with `docker compose up -d --build`
+
+**Manual Deployment:**
+
+If needed, you can deploy manually on the VM:
+
+```bash
+cd /opt/rechtbank
+git pull origin main
+
+# Create .env file with required variables
+cat > .env << EOF
+GEMINI_API_KEY=your-key-here
+ENV=production
+CORS_ORIGIN=https://rechtbank.example.com
+PUBLIC_API_URL=https://rechtbank.example.com/api
+DOMAIN=rechtbank.example.com
+EOF
+
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+
+**Rollback Procedure:**
+
+To rollback to a previous version:
+
+```bash
+# On your VM
+cd /opt/rechtbank
+git log --oneline  # Find the commit hash to rollback to
+git reset --hard <commit-hash>
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+
+Or push a revert commit to trigger automatic deployment:
+
+```bash
+# On your local machine
+git revert <bad-commit-hash>
+git push origin main
+```
+
+**Verification:**
+
+After deployment, verify:
+- Frontend accessible at `https://your-domain.com`
+- HTTPS certificate is valid (Let's Encrypt)
+- API endpoints work correctly
+- Backend is not directly accessible from external network
+
 ### Health Checks
+
 The backend includes health checks for container orchestration:
 - Endpoint: `GET /health`
 - Interval: 30s
