@@ -72,6 +72,18 @@ GEBRUIK DE VOLGENDE RICHTLIJNEN:
 
 WEES CREATIEF, HUMORISTISCH EN OVERDREVEN FORMEEL IN JE JURIDISCHE TAALGEBRUIK!`
 
+const userPrompt = "Analyseer dit meubelstuk en spreek je vonnis uit."
+
+// GetSystemPrompt returns the system prompt used by the Gemini analyzer
+func GetSystemPrompt() string {
+	return systemPrompt
+}
+
+// GetUserPrompt returns the user prompt sent with each image
+func GetUserPrompt() string {
+	return userPrompt
+}
+
 // VerdictSchema defines the JSON schema for Gemini structured output
 type VerdictSchema struct {
 	Observation string `json:"observation"`
@@ -129,7 +141,7 @@ func (c *RealGeminiClient) GenerateContent(ctx context.Context, imageData []byte
 
 	resp, err := c.model.GenerateContent(ctx,
 		genai.ImageData(mimeType, imageData),
-		genai.Text("Analyseer dit meubelstuk en spreek je vonnis uit."),
+		genai.Text(userPrompt),
 	)
 	if err != nil {
 		return nil, err
@@ -145,6 +157,9 @@ func (c *RealGeminiClient) GenerateContent(ctx context.Context, imageData []byte
 		return nil, &InvalidResponseError{Message: "unexpected response format"}
 	}
 
+	// Store raw JSON
+	rawJSON := string(textPart)
+
 	// Parse JSON response
 	var schema VerdictSchema
 	if err := json.Unmarshal([]byte(textPart), &schema); err != nil {
@@ -158,6 +173,7 @@ func (c *RealGeminiClient) GenerateContent(ctx context.Context, imageData []byte
 		Sentence:    schema.Sentence,
 		Reasoning:   schema.Reasoning,
 		Observation: schema.Observation,
+		RawJSON:     rawJSON,
 	}, nil
 }
 
@@ -225,6 +241,7 @@ type GeminiResponse struct {
 	Sentence    string
 	Reasoning   string
 	Observation string
+	RawJSON     string // The raw JSON string from Gemini
 }
 
 // GeminiClientInterface defines the interface for the Gemini client
@@ -271,10 +288,12 @@ func (a *GeminiAnalyzer) AnalyzePhoto(ctx context.Context, imageData []byte) (*d
 				Admissible: response.Admissible,
 				Score:      response.Score,
 				Verdict: domain.VerdictDetails{
-					Crime:     response.Crime,
-					Sentence:  response.Sentence,
-					Reasoning: response.Reasoning,
+					Crime:       response.Crime,
+					Sentence:    response.Sentence,
+					Reasoning:   response.Reasoning,
+					Observation: response.Observation,
 				},
+				RawJSON: response.RawJSON,
 			}, nil
 		}
 
