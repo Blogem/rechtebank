@@ -1,0 +1,15 @@
+[Unit]
+Description=Rechtbank docker-compose service
+After=network.target
+After=systemd-user-sessions.service
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/%u/rechtbank
+ExecStart=/home/%u/rechtbank/start_rechtbank.sh
+RemainAfterExit=yes
+ExecStop=/home/%u/rechtbank/stop_rechtbank.sh
+
+[Install]
+WantedBy=multi-user.target

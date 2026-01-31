@@ -5,8 +5,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - PORT=8080
@@ -42,10 +40,14 @@ services:
       dockerfile: Dockerfile
       args:
         - PUBLIC_API_URL=${PUBLIC_API_URL:-http://localhost:8080}
-    ports:
-      - "5173:80"
     environment:
       - PUBLIC_API_URL=http://localhost:8080
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     depends_on:
       backend:
         condition: service_healthy

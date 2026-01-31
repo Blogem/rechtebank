@@ -9,22 +9,74 @@ jobs:
     deploy:
         runs-on: ubuntu-latest
         name: Deploy to Production VM
-
         steps:
-            - name: Deploy via SSH
-              uses: appleboy/ssh-action@v1.0.3
-              with:
-                  host: ${{ secrets.VM_IP }}
-                  username: ${{ secrets.VM_USER }}
-                  key: ${{ secrets.SSH_PRIVATE_KEY }}
-                  script: |
-                      cd /opt/rechtbank
-                      git pull origin main
-                      cat > .env << EOF
-                      GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
-                      ENV=production
-                      CORS_ORIGIN=https://${{ secrets.DOMAIN }}
-                      PUBLIC_API_URL=https://${{ secrets.DOMAIN }}/api
-                      DOMAIN=${{ secrets.DOMAIN }}
-                      EOF
-                      docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+            - uses: actions/checkout@v3
+            - name: Copy branch to remote
+              env:
+                  VM_IP: ${{ secrets.VM_IP }}
+                  VM_USER: ${{ secrets.VM_USER }}
+                  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+              run: |
+                  mkdir -p ~/.ssh
+                  echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+                  chmod 600 ~/.ssh/id_rsa
+                  ssh-keyscan -H $VM_IP >> ~/.ssh/known_hosts
+                  ssh $VM_USER@$VM_IP "mkdir -p /home/$VM_USER/rechtbank"
+                  scp -r ./* $VM_USER@$VM_IP:/home/$VM_USER/rechtbank
+            - name: Install systemd service and start
+              env:
+                  VM_IP: ${{ secrets.VM_IP }}
+                  VM_USER: ${{ secrets.VM_USER }}
+                  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+                  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+                  DOMAIN: ${{ secrets.DOMAIN }}
+              run: |
+                  mkdir -p ~/.ssh
+                  echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+                  chmod 600 ~/.ssh/id_rsa
+                  ssh-keyscan -H $VM_IP >> ~/.ssh/known_hosts
+
+                  # Create .env file with actual values
+                  ssh $VM_USER@$VM_IP "cat > \$HOME/rechtbank/.env <<'ENVEOF'
+                  GEMINI_API_KEY=$GEMINI_API_KEY
+                  ENV=production
+                  CORS_ORIGIN=https://$DOMAIN
+                  PUBLIC_API_URL=https://$DOMAIN/api
+                  DOMAIN=$DOMAIN
+                  ENVEOF
+                  "
+
+                  ssh $VM_USER@$VM_IP bash <<-'EOF'
+                  	sudo chmod +x $HOME/rechtbank/start_rechtbank.sh
+                  	sudo chmod +x $HOME/rechtbank/stop_rechtbank.sh
+                  	
+                  	# Create service file with correct paths
+                  	cat > $HOME/rechtbank/rechtbank.service <<-'SERVICEEOF'
+                  	[Unit]
+                  	Description=Rechtbank docker-compose service
+                  	After=network.target
+                  	After=systemd-user-sessions.service
+                  	After=network-online.target
+                  	
+                  	[Service]
+                  	Type=oneshot
+                  	WorkingDirectory=WORKDIR
+                  	ExecStart=WORKDIR/start_rechtbank.sh
+                  	RemainAfterExit=yes
+                  	ExecStop=WORKDIR/stop_rechtbank.sh
+                  	
+                  	[Install]
+                  	WantedBy=multi-user.target
+                  	SERVICEEOF
+                  	
+                  	# Replace placeholder with actual path
+                  	sed -i "s|WORKDIR|$HOME/rechtbank|g" $HOME/rechtbank/rechtbank.service
+                  	
+                  	sudo cp $HOME/rechtbank/rechtbank.service /etc/systemd/system/
+                  	sudo systemctl daemon-reload
+                  	sudo systemctl enable rechtbank
+                  	sudo systemctl stop rechtbank || true
+                  	sudo systemctl start rechtbank || echo "Service failed to start"
+                  	sudo systemctl status rechtbank --no-pager || true
+                  	sudo journalctl -xeu rechtbank.service --no-pager -n 50 || true
+                  EOF
