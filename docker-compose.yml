@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - PORT=8080
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
+      - ENV=${ENV:-development}
+      - GEMINI_TIMEOUT=${GEMINI_TIMEOUT:-30}
+      - PHOTO_STORAGE_PATH=/app/photos
+      - PHOTO_RETENTION_DAYS=30
+    volumes:
+      - photos:/app/photos
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/health",
+        ]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - rechtebank-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - PUBLIC_API_URL=http://localhost:8080
+    ports:
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - rechtebank-network
+
+networks:
+  rechtebank-network:
+    driver: bridge
+
+volumes:
+  photos:
+    driver: local
