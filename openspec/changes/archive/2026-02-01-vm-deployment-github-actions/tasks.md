@@ -1,11 +1,11 @@
 ## 1. Pre-Deployment Setup
 
 - [x] 1.1 Add `.env` to `.gitignore` if not already present
-- [ ] 1.2 Configure GitHub Secrets: VM_IP, VM_USER, SSH_PRIVATE_KEY, GEMINI_API_KEY
-- [ ] 1.3 Verify Traefik is running on VM with network named `proxy`
-- [ ] 1.4 Determine deployment path on VM (e.g., `/opt/rechtbank`)
-- [ ] 1.5 Clone repository to deployment path on VM if not already present
-- [ ] 1.6 Decide on production domain name (e.g., `rechtbank.example.com`)
+- [x] 1.2 Configure GitHub Secrets: VM_IP, VM_USER, SSH_PRIVATE_KEY, GEMINI_API_KEY
+- [x] 1.3 Verify Traefik is running on VM with network named `proxy`
+- [x] 1.4 Determine deployment path on VM (e.g., `/opt/rechtbank`)
+- [x] 1.5 Clone repository to deployment path on VM if not already present
+- [x] 1.6 Decide on production domain name (e.g., `rechtbank.example.com`)
 
 ## 2. GitHub Actions Workflow
 
@@ -18,7 +18,7 @@
 - [x] 2.7 Add script to execute `git pull origin main`
 - [x] 2.8 Add script to create `.env` file with GEMINI_API_KEY from secrets
 - [x] 2.9 Add script to execute `docker compose up -d --build`
-- [ ] 2.10 Test workflow by pushing to main branch
+- [x] 2.10 Test workflow by pushing to main branch
 
 ## 3. Docker Compose Configuration
 
@@ -44,14 +44,14 @@
 ## 5. Testing and Validation
 
 - [x] 5.1 Test docker-compose configuration locally with `docker compose config`
-- [ ] 5.2 Verify workflow syntax with GitHub Actions validator
-- [ ] 5.3 Perform test deployment to VM
-- [ ] 5.4 Verify frontend is accessible via production domain with HTTPS
-- [ ] 5.5 Verify Let's Encrypt certificate was issued successfully
-- [ ] 5.6 Test API calls from frontend to backend work correctly
-- [ ] 5.7 Verify backend is not directly accessible from external network
-- [ ] 5.8 Check deployment logs in GitHub Actions for errors
-- [ ] 5.9 Test rollback procedure by reverting a commit
+- [x] 5.2 Verify workflow syntax with GitHub Actions validator
+- [x] 5.3 Perform test deployment to VM
+- [x] 5.4 Verify frontend is accessible via production domain with HTTPS
+- [x] 5.5 Verify Let's Encrypt certificate was issued successfully
+- [x] 5.6 Test API calls from frontend to backend work correctly
+- [x] 5.7 Verify backend is not directly accessible from external network
+- [x] 5.8 Check deployment logs in GitHub Actions for errors
+- [x] 5.9 Test rollback procedure by reverting a commit
 
 ## 6. Documentation
 
