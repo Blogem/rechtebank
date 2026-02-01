@@ -72,12 +72,31 @@
 			// Get verdict text for sharing
 			const verdictText = verdict.admissible ? verdict.verdict.observation : verdict.verdict.crime;
 
-			// Include URL in text for apps that don't support separate url field (like WhatsApp)
-			const shareData = {
+			// Share data with URL in separate field
+			const shareData: ShareData = {
 				title: 'Vonnis van de Rechtbank voor Meubilair',
-				text: `${verdictText}\n\nScore: ${verdict.score}/10\n\n${shareUrl}`,
+				text: `${verdictText}\n\nScore: ${verdict.score}/10`,
 				url: shareUrl
 			};
+
+			// Try to include the photo if available
+			if (imageData) {
+				try {
+					// Convert base64 data URL to Blob
+					const response = await fetch(imageData);
+					const blob = await response.blob();
+					const file = new File([blob], 'meubelstuk.jpg', { type: blob.type });
+
+					// Check if sharing files is supported
+					const dataWithFile = { ...shareData, files: [file] };
+					if (navigator.canShare && navigator.canShare(dataWithFile)) {
+						shareData.files = [file];
+					}
+				} catch (err) {
+					// If file conversion fails, continue without the image
+					console.log('Could not include image in share:', err);
+				}
+			}
 
 			// Try Web Share API first (mobile)
 			if (navigator.share) {
