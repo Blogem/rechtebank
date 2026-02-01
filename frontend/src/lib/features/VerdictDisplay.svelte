@@ -70,13 +70,17 @@
 			const shareUrl = `${baseUrl}/verdict/${shareResponse.id}`;
 
 			// Get verdict text for sharing
-			const verdictText = verdict.admissible ? verdict.verdict.observation : verdict.verdict.crime;
+			let verdictText = '';
+			if (verdict.admissible) {
+				verdictText = `${verdict.verdict.observation}\n\nUitspraak: ${verdict.verdict.sentence}`;
+			} else {
+				verdictText = `${verdict.verdict.crime}\n\n${verdict.verdict.observation}`;
+			}
 
 			// Share data with URL in separate field
 			const shareData: ShareData = {
 				title: 'Vonnis van de Rechtbank voor Meubilair',
-				text: `${verdictText}\n\nScore: ${verdict.score}/10`,
-				url: shareUrl
+				text: `${verdictText}\n\nScore: ${verdict.score}/10`
 			};
 
 			// Try to include the photo if available
