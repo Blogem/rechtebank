@@ -80,7 +80,7 @@
 			// Share data with URL in separate field
 			const shareData: ShareData = {
 				title: 'Vonnis van de Rechtbank voor Meubilair',
-				text: `${verdictText}\n\nScore: ${verdict.score}/10`
+				text: `${verdictText}\n\nScore: ${verdict.score}/10\n\nBekijk het volledige vonnis hier: ${shareUrl}`
 			};
 
 			// Try to include the photo if available
