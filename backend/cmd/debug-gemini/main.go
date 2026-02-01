@@ -15,7 +15,9 @@ import (
 	"rechtebank/backend/internal/adapters/gemini"
 	"rechtebank/backend/internal/core/domain"
 
+	genaiSDK "github.com/google/generative-ai-go/genai"
 	_ "golang.org/x/image/webp"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -98,6 +100,14 @@ func run() error {
 	fmt.Printf("Max Retries: %d\n", maxRetries)
 	fmt.Println()
 
+	// Create context
+	ctx := context.Background()
+
+	// Count tokens
+	if err := countAndDisplayTokens(ctx, apiKey, imageData, mimeType); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: token counting failed: %v\n", err)
+	}
+
 	// Initialize analyzer
 	analyzer, err := gemini.NewGeminiAnalyzer(apiKey, timeout)
 	if err != nil {
@@ -106,7 +116,6 @@ func run() error {
 	defer analyzer.Close()
 
 	// Call API
-	ctx := context.Background()
 	printSection("CALLING GEMINI API")
 	fmt.Println("Sending request...")
 	fmt.Println()
@@ -211,4 +220,36 @@ func analyzeWithDebug(ctx context.Context, analyzer *gemini.GeminiAnalyzer, imag
 	}
 
 	return response, prettyJSON.String(), nil
+}
+
+// countAndDisplayTokens counts and displays token usage for the request
+func countAndDisplayTokens(ctx context.Context, apiKey string, imageData []byte, mimeType string) error {
+	client, err := genaiSDK.NewClient(ctx, option.WithAPIKey(apiKey))
+	if err != nil {
+		return fmt.Errorf("failed to create client: %w", err)
+	}
+	defer client.Close()
+
+	// Get prompts
+	systemPrompt := gemini.GetSystemPrompt()
+	userPrompt := gemini.GetUserPrompt()
+
+	// Create model
+	model := client.GenerativeModel("gemini-2.5-flash-lite")
+
+	// Count tokens
+	resp, err := model.CountTokens(ctx,
+		genaiSDK.Text(systemPrompt),
+		genaiSDK.Text(userPrompt),
+		genaiSDK.ImageData(mimeType, imageData),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to count tokens: %w", err)
+	}
+
+	printSection("TOKEN ANALYSIS")
+	fmt.Printf("Total Tokens: %d\n", resp.TotalTokens)
+	fmt.Println()
+
+	return nil
 }
