@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -25,7 +26,7 @@ func NewPhotoStorage(basePath string) (*PhotoStorage, error) {
 }
 
 // SavePhoto saves a photo to disk with timestamp-based naming
-func (s *PhotoStorage) SavePhoto(imageData []byte, llmResponse []byte, requestID string) (string, error) {
+func (s *PhotoStorage) SavePhoto(imageData []byte, llmResponse []byte, requestID string, timestampISO string) (string, error) {
 	// Create subdirectory based on current date (YYYY-MM-DD)
 	now := time.Now()
 	dateDir := now.Format("2006-01-02")
@@ -44,10 +45,25 @@ func (s *PhotoStorage) SavePhoto(imageData []byte, llmResponse []byte, requestID
 	if err := os.WriteFile(filePath, imageData, 0644); err != nil {
 		return "", fmt.Errorf("failed to write photo: %w", err)
 	}
-	// Write LLM response as JSON
-	filenameJSON := fmt.Sprintf("%s_%s.json", timestamp, requestID)
+	// Write LLM response as JSON with added metadata
+	filenameJSON := fmt.Sprintf("%s_%s.json", now.Format("150405"), requestID)
 	filePathJSON := filepath.Join(fullDir, filenameJSON)
-	if err := os.WriteFile(filePathJSON, llmResponse, 0644); err != nil {
+
+	// Parse the raw JSON and add requestId and timestamp
+	var jsonData map[string]interface{}
+	if err := json.Unmarshal(llmResponse, &jsonData); err != nil {
+		return "", fmt.Errorf("failed to parse JSON: %w", err)
+	}
+	jsonData["requestId"] = requestID
+	jsonData["timestamp"] = timestampISO
+
+	// Marshal back to JSON
+	completeJSON, err := json.MarshalIndent(jsonData, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal JSON: %w", err)
+	}
+
+	if err := os.WriteFile(filePathJSON, completeJSON, 0644); err != nil {
 		return "", fmt.Errorf("failed to write JSON: %w", err)
 	}
 

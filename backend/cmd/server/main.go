@@ -62,11 +62,12 @@ func main() {
 	// 4. Verdict Service
 	verdictService := services.NewVerdictService(geminiAnalyzer, photoValidator)
 
-	// 5. HTTP Handler
+	// 5. HTTP Handlers
 	judgeHandler := handlers.NewJudgeHandler(verdictService, photoStorage)
+	verdictHandler := handlers.NewVerdictHandler(cfg.PhotoStoragePath)
 
 	// 6. Router
-	router := httpAdapter.NewRouter(judgeHandler, httpAdapter.RouterConfig{
+	router := httpAdapter.NewRouter(judgeHandler, verdictHandler, httpAdapter.RouterConfig{
 		CORSOrigin: cfg.CORSOrigin,
 	})
 

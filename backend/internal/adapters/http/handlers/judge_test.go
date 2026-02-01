@@ -10,10 +10,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"rechtebank/backend/internal/core/domain"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"rechtebank/backend/internal/core/domain"
 )
 
 // MockVerdictService mocks the verdict service
@@ -90,6 +91,8 @@ func TestJudgeHandler_SuccessfulUpload(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, true, response.Admissible)
 	assert.Equal(t, 8, response.Score)
+	assert.Equal(t, "test-123", response.RequestID)
+	assert.Equal(t, "2026-01-31T10:00:00Z", response.Timestamp)
 	mockService.AssertExpectations(t)
 }
 

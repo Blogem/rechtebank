@@ -105,6 +105,13 @@ This will start:
 3. Take a photo of furniture (or upload one)
 4. Optionally rotate the photo
 5. Submit and receive your verdict!
+6. **Share your verdict**: Click "Deel Vonnis" to generate a shareable link
+
+**Sharing Feature:**
+- Each verdict can be shared via a unique URL (e.g., `/verdict/abc123...`)
+- Shared pages include both the photo and verdict
+- Perfect for social media sharing with Open Graph/Twitter Card support
+- URLs work on mobile using the Web Share API, or copy to clipboard on desktop
 
 ## Development
 
@@ -165,6 +172,43 @@ Submit a furniture photo for judgment.
   },
   "requestId": "550e8400-e29b-41d4-a716-446655440000",
   "timestamp": "2026-01-31T10:30:00Z"
+}
+```
+
+### POST /v1/verdict/share
+
+Create a shareable URL for a verdict.
+
+**Request:**
+```json
+{
+  "timestamp": "2026-01-31T10:30:00Z",
+  "requestId": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "MjAyNi0wMS0zMS8xMDMwMDBfNTUwZTg0MDA..."
+}
+```
+
+### GET /v1/verdict/:id
+
+Retrieve a verdict by its shareable ID.
+
+**Response:**
+```json
+{
+  "verdict": {
+    "admissible": true,
+    "score": 8,
+    "verdict": { ... },
+    "requestId": "550e8400-e29b-41d4-a716-446655440000",
+    "timestamp": "2026-01-31T10:30:00Z"
+  },
+  "image": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
 }
 ```
 

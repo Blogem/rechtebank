@@ -1,5 +1,6 @@
 import type { IApiPort, PhotoMetadata } from '../ports/IApiPort';
 import type { Verdict } from '$lib/shared/types/Verdict';
+import type { ShareVerdictRequest, ShareVerdictResponse, VerdictWithImageResponse } from '$lib/shared/types/ShareTypes';
 
 export class ApiAdapter implements IApiPort {
     private apiBaseUrl: string;
@@ -221,5 +222,53 @@ export class ApiAdapter implements IApiPort {
      */
     private delay(ms: number): Promise<void> {
         return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    /**
+     * Create a shareable URL for a verdict
+     */
+    async createShareURL(request: ShareVerdictRequest): Promise<ShareVerdictResponse> {
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/v1/verdict/share`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(request)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to create share URL (${response.status}): ${errorText}`);
+            }
+
+            const result: ShareVerdictResponse = await response.json();
+            return result;
+        } catch (error) {
+            console.error('Share URL creation failed:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Retrieve a verdict by its shareable ID
+     */
+    async getVerdictById(id: string): Promise<VerdictWithImageResponse> {
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/v1/verdict/${id}`, {
+                method: 'GET'
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to retrieve verdict (${response.status}): ${errorText}`);
+            }
+
+            const result: VerdictWithImageResponse = await response.json();
+            return result;
+        } catch (error) {
+            console.error('Verdict retrieval failed:', error);
+            throw error;
+        }
     }
 }

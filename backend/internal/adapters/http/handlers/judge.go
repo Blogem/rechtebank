@@ -22,7 +22,7 @@ type VerdictServiceInterface interface {
 
 // PhotoStorageInterface defines the interface for photo storage
 type PhotoStorageInterface interface {
-	SavePhoto(imageData []byte, llmResponse []byte, requestID string) (string, error)
+	SavePhoto(imageData []byte, llmResponse []byte, requestID string, timestamp string) (string, error)
 }
 
 // JudgeHandler handles POST /v1/judge requests
@@ -89,7 +89,7 @@ func (h *JudgeHandler) Handle(c *gin.Context) {
 	// Save photo to disk (async, don't fail request if this fails)
 	if h.storage != nil && result.RequestID != "" {
 		go func() {
-			if _, err := h.storage.SavePhoto(imageData, []byte(result.RawJSON), result.RequestID); err != nil {
+			if _, err := h.storage.SavePhoto(imageData, []byte(result.RawJSON), result.RequestID, result.Timestamp); err != nil {
 				// Log error but don't fail the request
 				fmt.Printf("Failed to save photo: %v\n", err)
 			}

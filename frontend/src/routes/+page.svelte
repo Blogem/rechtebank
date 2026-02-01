@@ -4,7 +4,8 @@
 		appState,
 		currentVerdict,
 		uploadError,
-		resetAppState
+		resetAppState,
+		setPermissionsGranted
 	} from '$lib/shared/stores/appStore';
 
 	import { ApiAdapter } from '$lib/adapters/api/ApiAdapter';
@@ -17,13 +18,16 @@
 	import courtSeal from '$lib/assets/court-seal.png';
 
 	const apiAdapter = new ApiAdapter();
+	let currentPhotoData: string | undefined = undefined;
 
 	onMount(() => {
 		appState.set('camera-ready');
+		setPermissionsGranted(true);
 	});
 
 	function handlePermissionRequested() {
 		appState.set('camera-ready');
+		setPermissionsGranted(true);
 	}
 
 	async function handlePhotoConfirmed(blob: Blob, rotation: number) {
@@ -33,6 +37,13 @@
 		uploadError.set(null);
 
 		try {
+			// Convert blob to data URL for display
+			const reader = new FileReader();
+			reader.readAsDataURL(blob);
+			reader.onloadend = () => {
+				currentPhotoData = reader.result as string;
+			};
+
 			const metadata = {
 				userAgent: navigator.userAgent,
 				timestamp: new Date().toISOString(),
@@ -60,6 +71,7 @@
 	}
 
 	function handleReset() {
+		currentPhotoData = undefined;
 		resetAppState();
 	}
 </script>
@@ -94,7 +106,11 @@
 		{:else if $appState === 'uploading'}
 			<UploadProgress progress={50} message="De rechter beraadslaagt..." />
 		{:else if $appState === 'showing-verdict' && $currentVerdict}
-			<VerdictDisplay verdict={$currentVerdict} onreset={handleReset} />
+			<VerdictDisplay
+				verdict={$currentVerdict}
+				imageData={currentPhotoData}
+				onreset={handleReset}
+			/>
 		{:else if $appState === 'error'}
 			<ErrorDisplay
 				message={$uploadError || 'Er is een fout opgetreden'}

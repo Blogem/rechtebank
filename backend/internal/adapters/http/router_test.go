@@ -6,11 +6,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"rechtebank/backend/internal/adapters/http/handlers"
+	"rechtebank/backend/internal/core/domain"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"rechtebank/backend/internal/adapters/http/handlers"
-	"rechtebank/backend/internal/core/domain"
 )
 
 // MockVerdictService for router tests
@@ -33,7 +34,8 @@ func init() {
 func TestRouter_HealthEndpoint(t *testing.T) {
 	mockService := new(MockVerdictService)
 	handler := handlers.NewJudgeHandler(mockService, nil)
-	router := NewRouter(handler, RouterConfig{CORSOrigin: "*"})
+	verdictHandler := handlers.NewVerdictHandler("")
+	router := NewRouter(handler, verdictHandler, RouterConfig{CORSOrigin: "*"})
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	w := httptest.NewRecorder()
@@ -48,7 +50,8 @@ func TestRouter_HealthEndpoint(t *testing.T) {
 func TestRouter_CORS_PreflightRequest(t *testing.T) {
 	mockService := new(MockVerdictService)
 	handler := handlers.NewJudgeHandler(mockService, nil)
-	router := NewRouter(handler, RouterConfig{CORSOrigin: "http://localhost:5173"})
+	verdictHandler := handlers.NewVerdictHandler("")
+	router := NewRouter(handler, verdictHandler, RouterConfig{CORSOrigin: "http://localhost:5173"})
 
 	req := httptest.NewRequest(http.MethodOptions, "/v1/judge", nil)
 	req.Header.Set("Origin", "http://localhost:5173")
@@ -65,7 +68,8 @@ func TestRouter_CORS_PreflightRequest(t *testing.T) {
 func TestRouter_CORS_PostRequest(t *testing.T) {
 	mockService := new(MockVerdictService)
 	handler := handlers.NewJudgeHandler(mockService, nil)
-	router := NewRouter(handler, RouterConfig{CORSOrigin: "http://localhost:5173"})
+	verdictHandler := handlers.NewVerdictHandler("")
+	router := NewRouter(handler, verdictHandler, RouterConfig{CORSOrigin: "http://localhost:5173"})
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/judge", nil)
 	req.Header.Set("Origin", "http://localhost:5173")
@@ -81,7 +85,8 @@ func TestRouter_CORS_PostRequest(t *testing.T) {
 func TestRouter_CORS_DefaultOrigin(t *testing.T) {
 	mockService := new(MockVerdictService)
 	handler := handlers.NewJudgeHandler(mockService, nil)
-	router := NewRouter(handler, RouterConfig{CORSOrigin: ""})
+	verdictHandler := handlers.NewVerdictHandler("")
+	router := NewRouter(handler, verdictHandler, RouterConfig{CORSOrigin: ""})
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	w := httptest.NewRecorder()
@@ -94,7 +99,8 @@ func TestRouter_CORS_DefaultOrigin(t *testing.T) {
 func TestRouter_V1JudgeEndpoint(t *testing.T) {
 	mockService := new(MockVerdictService)
 	handler := handlers.NewJudgeHandler(mockService, nil)
-	router := NewRouter(handler, RouterConfig{CORSOrigin: "*"})
+	verdictHandler := handlers.NewVerdictHandler("")
+	router := NewRouter(handler, verdictHandler, RouterConfig{CORSOrigin: "*"})
 
 	// Request without proper content type should fail with 400
 	req := httptest.NewRequest(http.MethodPost, "/v1/judge", nil)
@@ -109,7 +115,8 @@ func TestRouter_V1JudgeEndpoint(t *testing.T) {
 func TestRouter_NotFound(t *testing.T) {
 	mockService := new(MockVerdictService)
 	handler := handlers.NewJudgeHandler(mockService, nil)
-	router := NewRouter(handler, RouterConfig{CORSOrigin: "*"})
+	verdictHandler := handlers.NewVerdictHandler("")
+	router := NewRouter(handler, verdictHandler, RouterConfig{CORSOrigin: "*"})
 
 	req := httptest.NewRequest(http.MethodGet, "/unknown", nil)
 	w := httptest.NewRecorder()

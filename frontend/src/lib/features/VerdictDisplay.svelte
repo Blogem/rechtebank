@@ -1,8 +1,26 @@
 <script lang="ts">
 	import type { Verdict } from '$lib/shared/types';
+	import { ApiAdapter } from '$lib/adapters/api/ApiAdapter';
 
 	export let verdict: Verdict;
+	export let imageData: string | undefined = undefined;
 	export let onreset: ((event: CustomEvent) => void) | undefined = undefined;
+
+	const api = new ApiAdapter();
+
+	// Toast notification state
+	let toastMessage = '';
+	let toastVisible = false;
+	let toastTimeout: number | undefined;
+
+	function showToast(message: string, duration = 3000) {
+		if (toastTimeout) clearTimeout(toastTimeout);
+		toastMessage = message;
+		toastVisible = true;
+		toastTimeout = window.setTimeout(() => {
+			toastVisible = false;
+		}, duration);
+	}
 
 	function resetFlow() {
 		onreset?.(new CustomEvent('reset'));
@@ -40,36 +58,69 @@
 	}
 
 	async function shareVerdict() {
-		const verdictText = verdict.admissible ? verdict.verdict.observation : verdict.verdict.crime;
+		try {
+			// Call backend to create shareable URL
+			const shareResponse = await api.createShareURL({
+				timestamp: verdict.timestamp,
+				requestId: verdict.requestId
+			});
 
-		const shareData = {
-			title: 'Vonnis van de Rechtbank voor Meubilair',
-			text: `${verdictText}\n\nScore: ${verdict.score}/10`,
-			url: window.location.href
-		};
+			// Construct full shareable URL
+			const baseUrl = window.location.origin;
+			const shareUrl = `${baseUrl}/verdict/${shareResponse.id}`;
 
-		// Try Web Share API first (mobile)
-		if (navigator.share && navigator.canShare?.(shareData)) {
-			try {
-				await navigator.share(shareData);
-				return;
-			} catch (err) {
-				// User cancelled or error, fall through to clipboard
-				if (err instanceof Error && err.name === 'AbortError') {
-					return; // User cancelled, do nothing
+			// Get verdict text for sharing
+			const verdictText = verdict.admissible ? verdict.verdict.observation : verdict.verdict.crime;
+
+			// Include URL in text for apps that don't support separate url field (like WhatsApp)
+			const shareData = {
+				title: 'Vonnis van de Rechtbank voor Meubilair',
+				text: `${verdictText}\n\nScore: ${verdict.score}/10\n\n${shareUrl}`,
+				url: shareUrl
+			};
+
+			// Try Web Share API first (mobile)
+			if (navigator.share) {
+				try {
+					await navigator.share(shareData);
+					// Success - exit without showing any toast
+					return;
+				} catch (err) {
+					// User cancelled or dismissed the share dialog
+					if (err instanceof Error && err.name === 'AbortError') {
+						return; // Exit silently
+					}
+					// For any other error with Web Share API, show error and exit
+					// Don't fall back to clipboard on mobile where share API exists
+					console.error('Web Share API error:', err);
+					showToast('⚠ Delen mislukt. Probeer het opnieuw.');
+					return;
 				}
 			}
-		}
 
-		// Fallback: Copy verdict text to clipboard
-		const fullText = `${getVerdictIcon()} Vonnis van de Rechtbank voor Meubilair\n\n${verdictText}\n\nScore: ${verdict.score}/10\n\n${verdict.verdict.sentence}\n\nGevonnist op ${new Date(verdict.timestamp).toLocaleDateString('nl-NL')}`;
-
-		try {
-			await navigator.clipboard.writeText(fullText);
-			alert('Vonnis gekopieerd naar klembord!');
-		} catch (err) {
-			// Clipboard API failed, show alert with text to copy manually
-			alert('Kon niet delen. Kopieer deze tekst:\n\n' + fullText);
+			// Fallback: Copy shareable URL to clipboard (only for desktop)
+			try {
+				await navigator.clipboard.writeText(shareUrl);
+				showToast('✓ Link gekopieerd naar klembord!');
+			} catch (err) {
+				// Clipboard API failed, create a selectable text element
+				const textArea = document.createElement('textarea');
+				textArea.value = shareUrl;
+				textArea.style.position = 'fixed';
+				textArea.style.opacity = '0';
+				document.body.appendChild(textArea);
+				textArea.select();
+				try {
+					document.execCommand('copy');
+					showToast('✓ Link gekopieerd naar klembord!');
+				} catch (e) {
+					showToast('Kopieer deze link: ' + shareUrl, 8000);
+				}
+				document.body.removeChild(textArea);
+			}
+		} catch (error) {
+			console.error('Failed to share verdict:', error);
+			showToast('⚠ Kon geen deelbare link maken. Probeer het later opnieuw.');
 		}
 	}
 
@@ -81,15 +132,14 @@
 	}
 
 	function getVerdictIcon(): string {
-		if (!verdict.admissible) return '🔨';
-		if (verdict.verdict.verdictType === 'vrijspraak') return '🎉';
+		if (!verdict.admissible) return '🚫';
+		if (verdict.verdict.verdictType === 'vrijspraak') return '✅';
 		if (verdict.verdict.verdictType === 'waarschuwing') return '⚠️';
 		return '⚖️';
 	}
 
 	function getScoreClass(score: number): string {
-		if (score >= 9) return 'excellent';
-		if (score >= 7) return 'good';
+		if (score >= 8) return 'excellent';
 		if (score >= 5) return 'moderate';
 		return 'poor';
 	}
@@ -100,6 +150,12 @@
 		<div class="gavel-icon">{getVerdictIcon()}</div>
 		<h1>Vonnis van de Rechtbank voor Meubilair</h1>
 	</div>
+
+	{#if imageData}
+		<div class="photo-display">
+			<img src={imageData} alt="Ingediend meubelstuk" class="verdict-photo" />
+		</div>
+	{/if}
 
 	<div class="case-metadata">
 		<p class="case-number">Zaaknummer: {generateCaseNumber(verdict.timestamp)}</p>
@@ -168,6 +224,12 @@
 	</div>
 </div>
 
+{#if toastVisible}
+	<div class="toast" class:visible={toastVisible}>
+		{toastMessage}
+	</div>
+{/if}
+
 <style>
 	.verdict-display {
 		max-width: 800px;
@@ -197,6 +259,26 @@
 		font-size: 1.8rem;
 		margin: 0;
 		font-weight: 600;
+	}
+
+	.photo-display {
+		display: flex;
+		justify-content: center;
+		margin: 2rem 0;
+		padding: 1rem;
+		background: #f8f9fa;
+		border: 2px solid #2c3e50;
+		border-radius: 2px;
+	}
+
+	.verdict-photo {
+		max-width: 100%;
+		max-height: 500px;
+		width: auto;
+		height: auto;
+		display: block;
+		border-radius: 2px;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 	}
 
 	.case-metadata {
@@ -405,5 +487,56 @@
 
 	.verdict-display.dismissed {
 		border-top: 5px solid #6c757d;
+	}
+
+	.toast {
+		position: fixed;
+		bottom: 2rem;
+		left: 50%;
+		transform: translateX(-50%) translateY(100px);
+		background: #2c3e50;
+		color: white;
+		padding: 1rem 1.5rem;
+		border-radius: 8px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+		font-size: 0.95rem;
+		z-index: 1000;
+		max-width: 90%;
+		word-wrap: break-word;
+		opacity: 0;
+		transition: all 0.3s ease-in-out;
+	}
+
+	.toast.visible {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0);
+	}
+
+	@media (max-width: 768px) {
+		.verdict-display {
+			padding: 1rem;
+			margin: 1rem;
+		}
+
+		.court-header h1 {
+			font-size: 1.4rem;
+		}
+
+		.score-number {
+			font-size: 3.5rem;
+		}
+
+		.verdict-actions {
+			flex-direction: column;
+		}
+
+		.action-button {
+			width: 100%;
+		}
+
+		.verdict-photo {
+			max-height: 300px;
+		}
 	}
 </style>

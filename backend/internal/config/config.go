@@ -39,7 +39,7 @@ func Load() (*Config, error) {
 		GeminiTimeout:      getDurationOrDefault("GEMINI_TIMEOUT", 30*time.Second),
 		MaxFileSize:        getInt64OrDefault("MAX_FILE_SIZE", 10*1024*1024), // 10MB
 		PhotoStoragePath:   getEnvOrDefault("PHOTO_STORAGE_PATH", "./photos"),
-		PhotoRetentionDays: getIntOrDefault("PHOTO_RETENTION_DAYS", 30),
+		PhotoRetentionDays: getIntOrDefault("PHOTO_RETENTION_DAYS", 90),
 		Environment:        getEnvOrDefault("ENV", "development"),
 	}
 

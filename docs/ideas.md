@@ -1,5 +1,3 @@
-# Frontend
-- Improve the share option: share with photo
+# AI
 
-# Analyzer
-- Compress photo so we don't spend so many tokens
+- Improve prompt to be more strict on the furniture requirement.

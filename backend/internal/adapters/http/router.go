@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"rechtebank/backend/internal/adapters/http/handlers"
+
+	"github.com/gin-gonic/gin"
 )
 
 // RouterConfig holds configuration for the router
@@ -14,7 +15,7 @@ type RouterConfig struct {
 }
 
 // NewRouter creates a new Gin router with all middleware and routes configured
-func NewRouter(judgeHandler *handlers.JudgeHandler, config RouterConfig) *gin.Engine {
+func NewRouter(judgeHandler *handlers.JudgeHandler, verdictHandler *handlers.VerdictHandler, config RouterConfig) *gin.Engine {
 	router := gin.New()
 
 	// Add middleware
@@ -34,6 +35,8 @@ func NewRouter(judgeHandler *handlers.JudgeHandler, config RouterConfig) *gin.En
 	v1 := router.Group("/v1")
 	{
 		v1.POST("/judge", judgeHandler.Handle)
+		v1.GET("/verdict/:id", verdictHandler.GetByID)
+		v1.POST("/verdict/share", verdictHandler.CreateShareURL)
 	}
 
 	return router
