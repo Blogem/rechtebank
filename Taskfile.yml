@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: "3"
+
+vars:
+  GREETING: Hello, world!
+
+tasks:
+  default:
+    desc: Print a greeting message
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+
+  dev:
+    desc: Run the development environment (stops existing containers first)
+    cmds:
+      - docker ps -q | xargs -r docker stop || true
+      - docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+      - docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build

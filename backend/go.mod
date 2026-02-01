@@ -7,6 +7,7 @@ require (
 	github.com/google/generative-ai-go v0.20.1
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.11.1
+	golang.org/x/image v0.35.0
 	google.golang.org/api v0.264.0
 )
 
@@ -57,7 +58,6 @@ require (
 	go.uber.org/mock v0.5.0 // indirect
 	golang.org/x/arch v0.20.0 // indirect
 	golang.org/x/crypto v0.47.0 // indirect
-	golang.org/x/image v0.35.0 // indirect
 	golang.org/x/mod v0.31.0 // indirect
 	golang.org/x/net v0.49.0 // indirect
 	golang.org/x/oauth2 v0.34.0 // indirect

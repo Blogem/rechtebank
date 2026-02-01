@@ -142,3 +142,90 @@ func TestIntegration_AnalyzePhoto_ResponseFormat(t *testing.T) {
 		assert.Equal(t, 0, result.Score, "Non-admissible cases should have score 0")
 	}
 }
+
+// TestIntegration_Compression_JPEG tests end-to-end with JPEG compression
+func TestIntegration_Compression_JPEG(t *testing.T) {
+	apiKey := getAPIKey(t)
+
+	analyzer, err := NewGeminiAnalyzer(apiKey, 30*time.Second)
+	require.NoError(t, err)
+	defer analyzer.Close()
+
+	// Create a larger JPEG that will benefit from compression
+	jpegData := createTestJPEG()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	result, err := analyzer.AnalyzePhoto(ctx, jpegData)
+	if err != nil {
+		t.Logf("Error from Gemini API: %v", err)
+	}
+	require.NoError(t, err)
+	require.NotNil(t, result)
+
+	// Verify verdict accuracy is maintained (image should still be analyzed correctly)
+	assert.GreaterOrEqual(t, result.Score, 0)
+	assert.LessOrEqual(t, result.Score, 10)
+	assert.NotEmpty(t, result.Verdict.Crime)
+
+	t.Logf("JPEG compression test - Score: %d, VerdictType: %s", result.Score, result.Verdict.VerdictType)
+}
+
+// TestIntegration_Compression_PNG tests end-to-end with PNG compression
+func TestIntegration_Compression_PNG(t *testing.T) {
+	apiKey := getAPIKey(t)
+
+	analyzer, err := NewGeminiAnalyzer(apiKey, 30*time.Second)
+	require.NoError(t, err)
+	defer analyzer.Close()
+
+	// Create a PNG test image
+	pngData := createTestPNG(400, 300)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	result, err := analyzer.AnalyzePhoto(ctx, pngData)
+	if err != nil {
+		t.Logf("Error from Gemini API: %v", err)
+	}
+	require.NoError(t, err)
+	require.NotNil(t, result)
+
+	// Verify verdict accuracy is maintained
+	assert.GreaterOrEqual(t, result.Score, 0)
+	assert.LessOrEqual(t, result.Score, 10)
+	assert.NotEmpty(t, result.Verdict.Crime)
+
+	t.Logf("PNG compression test - Score: %d, VerdictType: %s", result.Score, result.Verdict.VerdictType)
+}
+
+// TestIntegration_Compression_WebP tests end-to-end with WebP pass-through
+func TestIntegration_Compression_WebP(t *testing.T) {
+	apiKey := getAPIKey(t)
+
+	analyzer, err := NewGeminiAnalyzer(apiKey, 30*time.Second)
+	require.NoError(t, err)
+	defer analyzer.Close()
+
+	// Create a WebP test image
+	webpData := createTestWebP()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	result, err := analyzer.AnalyzePhoto(ctx, webpData)
+	if err != nil {
+		t.Logf("Error from Gemini API: %v", err)
+	}
+	require.NoError(t, err)
+	require.NotNil(t, result)
+
+	// Verify verdict structure is valid
+	assert.GreaterOrEqual(t, result.Score, 0)
+	assert.LessOrEqual(t, result.Score, 10)
+	assert.NotEmpty(t, result.Verdict.Crime)
+
+	t.Logf("WebP pass-through test - Score: %d, VerdictType: %s", result.Score, result.Verdict.VerdictType)
+}

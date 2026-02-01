@@ -144,16 +144,23 @@ func NewRealGeminiClient(ctx context.Context, apiKey string) (*RealGeminiClient,
 
 // GenerateContent sends an image to Gemini and returns the verdict
 func (c *RealGeminiClient) GenerateContent(ctx context.Context, imageData []byte) (*GeminiResponse, error) {
-	// Detect MIME type from magic bytes
-	mimeType := detectMIMEType(imageData)
+	// Compress image before sending to API
+	compressedData, err := compressImage(imageData)
+	if err != nil {
+		log.Printf("[GEMINI] Compression error (using original): %v", err)
+		compressedData = imageData
+	}
+
+	// Detect MIME type from compressed image
+	mimeType := detectMIMEType(compressedData)
 	if mimeType == "" {
 		return nil, errors.New("unsupported image format")
 	}
 
-	log.Printf("[GEMINI] Sending to API: size=%d bytes, mimeType=%s", len(imageData), mimeType)
+	log.Printf("[GEMINI] Sending to API: size=%d bytes, mimeType=%s", len(compressedData), mimeType)
 
 	resp, err := c.model.GenerateContent(ctx,
-		genai.ImageData(mimeType, imageData),
+		genai.ImageData(mimeType, compressedData),
 		genai.Text(userPrompt),
 	)
 	if err != nil {

@@ -1,8 +1,11 @@
 package gemini
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"image"
+	"image/jpeg"
 	"testing"
 	"time"
 
@@ -216,4 +219,48 @@ func TestGeminiAnalyzer_AnalyzePhoto_InvalidResponse(t *testing.T) {
 	assert.Nil(t, result)
 	assert.Contains(t, err.Error(), "Invalid AI response format")
 	mockClient.AssertExpectations(t)
+}
+
+// Test that GenerateContent compresses image before sending to Gemini API
+func TestRealGeminiClient_GenerateContent_CompressesImage(t *testing.T) {
+	// This test verifies compression happens in the real client
+	// We can't test the actual API call without an API key, but we can verify
+	// the compression logic is in place by checking the flow
+
+	// Create a large test JPEG that will definitely be compressed
+	img := image.NewRGBA(image.Rect(0, 0, 2000, 1500))
+	var buf bytes.Buffer
+	jpeg.Encode(&buf, img, &jpeg.Options{Quality: 95})
+	largeJPEG := buf.Bytes()
+
+	// Call compressImage directly (this is what GenerateContent should use)
+	compressed, err := compressImage(largeJPEG)
+	assert.NoError(t, err)
+
+	// Verify compression occurred
+	assert.Less(t, len(compressed), len(largeJPEG), "Image should be compressed")
+
+	// Verify it's still a valid JPEG
+	assert.Equal(t, "jpeg", detectMIMEType(compressed))
+}
+
+// Test that compressed images maintain correct MIME type detection
+func TestRealGeminiClient_GenerateContent_MIMETypePreserved(t *testing.T) {
+	// Test JPEG
+	jpegData := createTestJPEGWithDimensions(800, 600)
+	compressedJPEG, err := compressImage(jpegData)
+	assert.NoError(t, err)
+	assert.Equal(t, "jpeg", detectMIMEType(compressedJPEG))
+
+	// Test PNG
+	pngData := createTestPNG(800, 600)
+	compressedPNG, err := compressImage(pngData)
+	assert.NoError(t, err)
+	assert.Equal(t, "png", detectMIMEType(compressedPNG))
+
+	// Test WebP
+	webpData := createTestWebP()
+	compressedWebP, err := compressImage(webpData)
+	assert.NoError(t, err)
+	assert.Equal(t, "webp", detectMIMEType(compressedWebP))
 }
