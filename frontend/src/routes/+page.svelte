@@ -83,8 +83,8 @@
 			<div class="introduction">
 				<p class="welcome-text">
 					Welkom bij de Rechtbank voor Meubilair, waar elk meubelstuk rekenschap moet afleggen van
-					zijn houding en constructie. Dien uw bewijsmateriaal in en verneem het onverbiddelijke
-					oordeel van de Eerwaarde Rechter.
+					zijn verticale integriteit. Dien uw bewijsmateriaal in en ontdek of uw stoel, tafel of
+					kast recht genoeg staat volgens de Eerwaarde Rechter.
 				</p>
 			</div>
 			<div class="section-divider"></div>
