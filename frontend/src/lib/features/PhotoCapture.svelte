@@ -15,7 +15,7 @@ Provides a manual rotation control overlay and "bakes" rotation into the final i
 
 **Props:**
 - `onPhotoConfirmed: (blob: Blob, rotation: number) => void` - Called when user confirms photo (required)
-- `onCancelled?: () => void` - Called when user cancels (optional)
+- `onPreviewStateChange?: (isPreviewing: boolean) => void` - Called when preview state changes (optional)
 
 **Usage:**
 ```svelte
@@ -38,7 +38,7 @@ Provides a manual rotation control overlay and "bakes" rotation into the final i
 
 	// Props
 	export let onPhotoConfirmed: (blob: Blob, rotation: number) => void;
-	export let onCancelled: (() => void) | undefined = undefined;
+	export let onPreviewStateChange: ((isPreviewing: boolean) => void) | undefined = undefined;
 
 	// State
 	let fileInput: HTMLInputElement;
@@ -88,6 +88,9 @@ Provides a manual rotation control overlay and "bakes" rotation into the final i
 
 		// Set initial rotation based on screen orientation
 		rotation = getInitialRotation();
+
+		// Notify parent that we're now in preview mode
+		onPreviewStateChange?.(true);
 	}
 
 	function handleRotateRight() {
@@ -139,6 +142,9 @@ Provides a manual rotation control overlay and "bakes" rotation into the final i
 		rotation = 0;
 		error = null;
 
+		// Notify parent that we're leaving preview mode
+		onPreviewStateChange?.(false);
+
 		// Trigger file input again
 		triggerFileInput();
 	}
@@ -152,7 +158,7 @@ Provides a manual rotation control overlay and "bakes" rotation into the final i
 				bind:this={fileInput}
 				type="file"
 				accept="image/*"
-				capture="camera"
+				capture="environment"
 				onchange={handleFileSelection}
 				aria-label="Upload foto"
 				class="hidden-input"
@@ -183,12 +189,12 @@ Provides a manual rotation control overlay and "bakes" rotation into the final i
 			</div>
 
 			<div class="controls">
-				<button onclick={handleRetake} class="button secondary" disabled={isProcessing}>
-					Opnieuw
-				</button>
-
 				<button onclick={handleConfirm} class="button primary" disabled={isProcessing}>
 					{isProcessing ? 'Verwerken...' : 'Bevestig'}
+				</button>
+
+				<button onclick={handleRetake} class="button secondary" disabled={isProcessing}>
+					Opnieuw
 				</button>
 			</div>
 
@@ -290,8 +296,10 @@ Provides a manual rotation control overlay and "bakes" rotation into the final i
 
 	.controls {
 		display: flex;
+		flex-direction: column;
 		gap: 1rem;
 		justify-content: center;
+		align-items: center;
 		margin: 1.5rem 0;
 	}
 

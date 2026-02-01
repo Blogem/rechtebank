@@ -19,6 +19,7 @@
 
 	const apiAdapter = new ApiAdapter();
 	let currentPhotoData: string | undefined = undefined;
+	let isPreviewingPhoto = false;
 
 	onMount(() => {
 		appState.set('camera-ready');
@@ -72,7 +73,12 @@
 
 	function handleReset() {
 		currentPhotoData = undefined;
+		isPreviewingPhoto = false;
 		resetAppState();
+	}
+
+	function handlePreviewStateChange(isPreviewing: boolean) {
+		isPreviewingPhoto = isPreviewing;
 	}
 </script>
 
@@ -92,16 +98,21 @@
 		{#if $appState === 'requesting-permissions'}
 			<CameraPermission httpsRequired={false} onpermissionrequested={handlePermissionRequested} />
 		{:else if $appState === 'camera-ready'}
-			<div class="introduction">
-				<p class="welcome-text">
-					Welkom bij de Rechtbank voor Meubilair, waar elk meubelstuk rekenschap moet afleggen van
-					zijn verticale integriteit. Dien uw bewijsmateriaal in en ontdek of uw stoel, tafel of
-					kast recht genoeg staat volgens de Eerwaarde Rechter.
-				</p>
-			</div>
-			<div class="section-divider"></div>
+			{#if !isPreviewingPhoto}
+				<div class="introduction">
+					<p class="welcome-text">
+						Welkom bij de Rechtbank voor Meubilair, waar elk meubelstuk rekenschap moet afleggen van
+						zijn verticale integriteit. Dien uw bewijsmateriaal in en ontdek of uw stoel, tafel of
+						kast recht genoeg staat volgens de Eerwaarde Rechter.
+					</p>
+				</div>
+				<div class="section-divider"></div>
+			{/if}
 			<div class="camera-section">
-				<PhotoCapture onPhotoConfirmed={handlePhotoConfirmed} />
+				<PhotoCapture
+					onPhotoConfirmed={handlePhotoConfirmed}
+					onPreviewStateChange={handlePreviewStateChange}
+				/>
 			</div>
 		{:else if $appState === 'uploading'}
 			<UploadProgress progress={50} message="De rechter beraadslaagt..." />
