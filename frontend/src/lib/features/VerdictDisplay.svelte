@@ -238,15 +238,15 @@
 		</section>
 	{/if}
 
-	<footer class="verdict-footer">
-		<p class="proclamation">Uitgesproken in het openbaar</p>
-		<p class="verdict-seal">⚖️</p>
-	</footer>
-
 	<div class="verdict-actions">
 		<button onclick={shareVerdict} class="action-button secondary">Deel Vonnis</button>
 		<button onclick={resetFlow} class="action-button primary">Nieuwe Zaak</button>
 	</div>
+
+	<footer class="verdict-footer">
+		<p class="proclamation">Uitgesproken in het openbaar</p>
+		<p class="verdict-seal">⚖️</p>
+	</footer>
 </div>
 
 {#if toastVisible}
@@ -314,7 +314,7 @@
 
 	.evidence-section {
 		padding: 2rem;
-		background: var(--color-court-bg);
+		background: var(--color-court-surface);
 		border-bottom: 1px solid var(--color-court-border);
 		opacity: 0;
 		animation: fadeInSection var(--timing-reveal) var(--ease-out) 0.2s forwards;
@@ -334,7 +334,7 @@
 	.photo-evidence {
 		display: flex;
 		justify-content: center;
-		background: white;
+		background: #f8f9fa;
 		padding: 1rem;
 		border: 2px solid var(--color-court-border);
 		border-radius: 2px;
@@ -468,7 +468,7 @@
 	.verdict-footer {
 		text-align: center;
 		padding: 2rem 1.5rem;
-		background: var(--color-court-bg);
+		background: var(--color-court-surface);
 		color: var(--color-court-text-light);
 	}
 
