@@ -7,10 +7,11 @@ A comedic web application that puts your furniture on trial. Upload a photo of y
 The Furniture Court ("Rechtbank voor Meubilair") analyzes furniture photos using Google's Gemini AI to deliver humorous legal judgments. If your furniture doesn't meet the strict standards of the Furniture Law, expect a sentence ranging from "re-orientation therapy" to "immediate scrapping."
 
 **Verdict System:**
-The court delivers verdicts in three categories:
+The court delivers verdicts in four categories:
 - **Vrijspraak** (Acquittal): For well-aligned furniture (typically scores 8-10)
 - **Waarschuwing** (Warning): For borderline cases with minor violations (typically scores 6-7)
 - **Schuldig** (Guilty): For serious alignment violations (typically scores 1-5)
+- **Niet-ontvankelijk** (Inadmissible): For non-furniture items or objects that don't fall under furniture law jurisdiction
 
 **Example Verdict:**
 - **Verdict Type**: Waarschuwing
@@ -40,6 +41,22 @@ This is a full-stack application built with:
                                            │  (Analysis)  │
                                            └──────────────┘
 ```
+
+**Photo Storage:**
+- Photos are organized in date-based subdirectories: `YYYY-MM-DD/HHMMSS_{requestID}.jpg`
+- Original photos stored alongside verdict JSON files for retrieval
+- Automatic cleanup runs daily, removing files older than retention period (default: 90 days)
+
+**Client-Side Processing:**
+- Photos are converted to JPEG format with 0.9 quality compression before upload
+- EXIF orientation is automatically handled during canvas rendering
+- Manual rotation is applied client-side before submission
+- Maximum file size enforced both client (UI) and server-side (10MB)
+
+**Production Nginx Proxy:**
+- Frontend nginx proxies `/api/*` requests to backend service
+- Static assets cached for 1 year, HTML files not cached
+- SPA routing with fallback to index.html for client-side routes
 
 ## Project Structure
 
@@ -108,7 +125,9 @@ This will start:
 6. **Share your verdict**: Click "Deel Vonnis" to generate a shareable link
 
 **Sharing Feature:**
-- Each verdict can be shared via a unique URL (e.g., `/verdict/abc123...`)
+- Each verdict receives a unique case number in the format `RVM-{year}-{timestamp_ms}` (e.g., `RVM-2026-1738339845000`)
+- Verdicts can be shared via a unique URL (e.g., `/verdict/abc123...`)
+- Verdict IDs are base64url-encoded file paths for secure retrieval
 - Shared pages include both the photo and verdict
 - Perfect for social media sharing with Open Graph/Twitter Card support
 - URLs work on mobile using the Web Share API, or copy to clipboard on desktop
@@ -149,6 +168,17 @@ npm run dev
 npm run test        # Watch mode
 npm run test:ui     # Interactive UI
 ```
+
+### Development Methodology
+
+This project is built using the [OpenSpec](https://github.com/openspec-framework/openspec) framework for structured, specification-driven development. The codebase is written approximately 99% by AI using this methodology.
+
+**OpenSpec Structure:**
+- `openspec/specs/` — Feature specifications defining functionality, acceptance criteria, and technical details
+- `openspec/changes/` — Active development proposals and design documents
+- `openspec/changes/archive/` — Completed features and their implementation history
+
+All features are first specified in the `openspec/` directory before implementation. This ensures clear requirements, consistent architecture, and maintainable documentation throughout the AI-driven development process.
 
 ## API Documentation
 
@@ -226,6 +256,8 @@ Health check endpoint.
 | `CORS_ORIGIN` | No | `*` | Allowed CORS origin |
 | `GEMINI_TIMEOUT` | No | `30` | Gemini API timeout (seconds) |
 | `MAX_FILE_SIZE` | No | `10485760` | Max upload size (bytes) |
+| `PHOTO_STORAGE_PATH` | No | `./photos` | Directory for storing photos and verdicts |
+| `PHOTO_RETENTION_DAYS` | No | `90` | Number of days to retain photos and verdicts |
 
 ### Frontend
 | Variable | Required | Default | Description |
@@ -287,9 +319,8 @@ Configure the following secrets in your GitHub repository settings (Settings →
 1. Clone the repository to deployment directory:
 ```bash
 # On your VM
-sudo mkdir -p /opt/rechtbank
-sudo chown $USER:$USER /opt/rechtbank
-cd /opt/rechtbank
+mkdir -p ~/rechtbank
+cd ~/rechtbank
 git clone <your-repo-url> .
 ```
 
@@ -315,7 +346,7 @@ The application automatically deploys when code is pushed to the `main` branch:
 If needed, you can deploy manually on the VM:
 
 ```bash
-cd /opt/rechtbank
+cd ~/rechtbank
 git pull origin main
 
 # Create .env file with required variables
@@ -336,7 +367,7 @@ To rollback to a previous version:
 
 ```bash
 # On your VM
-cd /opt/rechtbank
+cd ~/rechtbank
 git log --oneline  # Find the commit hash to rollback to
 git reset --hard <commit-hash>
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build

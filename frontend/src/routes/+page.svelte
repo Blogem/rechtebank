@@ -122,9 +122,7 @@
 
 	<footer class="app-footer">
 		<p>
-			<small
-				>© 2026 Rechtbank voor Meubilair | Een satirisch project | Geen echte juridische uitspraken</small
-			>
+			<small>© 2026 Rechtbank voor Meubilair</small>
 		</p>
 	</footer>
 </div>

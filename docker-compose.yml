@@ -12,7 +12,7 @@ services:
       - ENV=${ENV:-development}
       - GEMINI_TIMEOUT=${GEMINI_TIMEOUT:-30}
       - PHOTO_STORAGE_PATH=/app/photos
-      - PHOTO_RETENTION_DAYS=30
+      - PHOTO_RETENTION_DAYS=90
     volumes:
       - photos:/app/photos
     healthcheck:
