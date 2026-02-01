@@ -54,7 +54,19 @@ The system SHALL provide actions after verdict is displayed.
 
 #### Scenario: Share verdict option
 - **WHEN** verdict is displayed
-- **THEN** system provides an option to share the verdict (copy link or download image)
+- **THEN** system provides a "Deel Vonnis" (Share Verdict) button that generates a shareable URL
+
+#### Scenario: Share via native dialog
+- **WHEN** user clicks share button on mobile device
+- **THEN** system opens native share dialog with verdict URL and preview text
+
+#### Scenario: Copy link to clipboard
+- **WHEN** user clicks share button on desktop or native share is unavailable
+- **THEN** system copies the shareable verdict URL to clipboard and shows confirmation
+
+#### Scenario: Share includes verdict preview
+- **WHEN** share dialog is opened
+- **THEN** system includes verdict title, score, and a text preview in the share data
 
 ### Requirement: Loading state during analysis
 The system SHALL display appropriate loading state while waiting for backend verdict.
@@ -77,3 +89,22 @@ The system SHALL gracefully handle verdict retrieval errors.
 #### Scenario: Network timeout during verdict
 - **WHEN** network request times out while fetching verdict
 - **THEN** system displays an error message with retry option
+
+### Requirement: Display photo with verdict
+The system SHALL display the uploaded photo alongside the verdict text when photo data is provided.
+
+#### Scenario: Photo display when available
+- **WHEN** verdict display component receives image data
+- **THEN** system displays the photo in a bordered frame above or beside the verdict content
+
+#### Scenario: Verdict display without photo
+- **WHEN** verdict display component does not receive image data
+- **THEN** system displays only the verdict content without photo section (backward compatible)
+
+#### Scenario: Photo responsive sizing
+- **WHEN** photo is displayed with verdict
+- **THEN** system ensures photo scales appropriately for different screen sizes while maintaining aspect ratio
+
+#### Scenario: Photo loading state
+- **WHEN** photo data is being loaded
+- **THEN** system displays a placeholder or loading indicator in the photo area
