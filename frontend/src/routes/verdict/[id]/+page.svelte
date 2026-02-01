@@ -46,8 +46,12 @@
 
 <style>
 	.shared-verdict-page {
-		min-height: 100vh;
-		background: #f5f5f5;
-		padding: 1rem 0;
+		padding: 2rem 0;
+	}
+
+	@media (max-width: 768px) {
+		.shared-verdict-page {
+			padding: 1rem 0;
+		}
 	}
 </style>

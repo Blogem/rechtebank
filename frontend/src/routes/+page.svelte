@@ -15,7 +15,6 @@
 	import UploadProgress from '$lib/features/UploadProgress.svelte';
 	import VerdictDisplay from '$lib/features/VerdictDisplay.svelte';
 	import ErrorDisplay from '$lib/features/ErrorDisplay.svelte';
-	import courtSeal from '$lib/assets/court-seal.png';
 
 	const apiAdapter = new ApiAdapter();
 	let currentPhotoData: string | undefined = undefined;
@@ -83,186 +82,138 @@
 </script>
 
 <svelte:head>
-	<title>Rechtbank voor Meubilair</title>
-	<meta name="description" content="Submit your furniture for legal judgment" />
+	<title>Rechtbank voor Meubilair - Zaak indienen</title>
+	<meta name="description" content="Dien uw meubelstuk in voor officieel rechterlijk oordeel" />
 </svelte:head>
 
-<div class="app-container">
-	<header class="app-header">
-		<img src={courtSeal} alt="Court Seal" class="court-seal" />
-		<h1>⚖️ Rechtbank voor Meubilair</h1>
-		<p class="tagline">Uw meubels aan het oordeel onderworpen</p>
-	</header>
+{#if $appState === 'requesting-permissions'}
+	<CameraPermission httpsRequired={false} onpermissionrequested={handlePermissionRequested} />
+{:else if $appState === 'camera-ready'}
+	{#if !isPreviewingPhoto}
+		<section class="introduction-card">
+			<h2 class="card-label">Officiële mededeling</h2>
+			<p class="introduction-text">
+				Welkom bij de Rechtbank voor Meubilair, waar elk meubelstuk rekenschap moet afleggen van
+				zijn verticale integriteit. Dien uw bewijsmateriaal in en ontdek of uw stoel, tafel of kast
+				recht genoeg staat volgens de Eerwaarde Rechter.
+			</p>
+		</section>
+	{/if}
 
-	<main class="app-main">
-		{#if $appState === 'requesting-permissions'}
-			<CameraPermission httpsRequired={false} onpermissionrequested={handlePermissionRequested} />
-		{:else if $appState === 'camera-ready'}
-			{#if !isPreviewingPhoto}
-				<div class="introduction">
-					<p class="welcome-text">
-						Welkom bij de Rechtbank voor Meubilair, waar elk meubelstuk rekenschap moet afleggen van
-						zijn verticale integriteit. Dien uw bewijsmateriaal in en ontdek of uw stoel, tafel of
-						kast recht genoeg staat volgens de Eerwaarde Rechter.
-					</p>
-				</div>
-				<div class="section-divider"></div>
-			{/if}
-			<div class="camera-section">
-				<PhotoCapture
-					onPhotoConfirmed={handlePhotoConfirmed}
-					onPreviewStateChange={handlePreviewStateChange}
-				/>
-			</div>
-		{:else if $appState === 'uploading'}
-			<UploadProgress progress={50} message="De rechter beraadslaagt..." />
-		{:else if $appState === 'showing-verdict' && $currentVerdict}
-			<VerdictDisplay
-				verdict={$currentVerdict}
-				imageData={currentPhotoData}
-				onreset={handleReset}
-			/>
-		{:else if $appState === 'error'}
-			<ErrorDisplay
-				message={$uploadError || 'Er is een fout opgetreden'}
-				onreset={handleReset}
-				onretry={handleRetry}
-			/>
+	<section class="case-submission-card">
+		{#if !isPreviewingPhoto}
+			<h2 class="section-heading">Zaak indienen</h2>
+			<p class="section-description">
+				Maak een foto van het meubelstuk dat u ter beoordeling wilt voorleggen. Zorg ervoor dat het
+				meubelstuk goed zichtbaar is in het beeld.
+			</p>
 		{/if}
-	</main>
-
-	<footer class="app-footer">
-		<p>
-			<small>© 2026 Rechtbank voor Meubilair</small>
-		</p>
-	</footer>
-</div>
+		<PhotoCapture
+			onPhotoConfirmed={handlePhotoConfirmed}
+			onPreviewStateChange={handlePreviewStateChange}
+		/>
+	</section>
+{:else if $appState === 'uploading'}
+	<UploadProgress progress={50} message="De rechter beraadslaagt..." />
+{:else if $appState === 'showing-verdict' && $currentVerdict}
+	<VerdictDisplay verdict={$currentVerdict} imageData={currentPhotoData} onreset={handleReset} />
+{:else if $appState === 'error'}
+	<ErrorDisplay
+		message={$uploadError || 'Er is een fout opgetreden'}
+		onreset={handleReset}
+		onretry={handleRetry}
+	/>
+{/if}
 
 <style>
-	:global(body) {
-		margin: 0;
-		padding: 0;
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-		background: #fafafa;
-		min-height: 100vh;
-	}
-
-	.app-container {
-		min-height: 100vh;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.app-header {
-		background: #2e2e2e;
-		color: white;
-		text-align: center;
-		padding: 2rem 1rem;
-		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-		border-bottom: 3px solid #4a4a4a;
-		position: relative;
-	}
-
-	.app-header h1 {
-		margin: 0;
-		font-size: 2.5rem;
-		font-family: Georgia, serif;
-		font-weight: 600;
-	}
-
-	.court-seal {
-		position: absolute;
-		left: 2rem;
-		top: 50%;
-		transform: translateY(-50%);
-		width: 80px;
-		height: 80px;
-		opacity: 0.95;
-	}
-
-	.tagline {
-		margin: 0.5rem 0 0 0;
-		font-style: italic;
-		opacity: 0.9;
-	}
-
-	.app-main {
-		flex: 1;
-		padding: 2rem 1rem;
-		max-width: 1200px;
-		margin: 0 auto;
-		width: 100%;
-	}
-
-	.introduction {
-		background: white;
-		border-radius: 2px;
+	.introduction-card {
+		background: var(--color-court-surface);
+		border-radius: 4px;
 		padding: 2rem;
-		margin-bottom: 1.5rem;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-		border-top: 3px solid #4a4a4a;
+		margin-bottom: 2rem;
+		box-shadow: var(--shadow-base);
+		border-top: 3px solid var(--color-court-accent);
+		transition: box-shadow var(--timing-interactive) var(--ease-out);
 	}
 
-	.welcome-text {
+	.card-label {
+		font-size: 0.9rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--color-court-accent);
+		margin: 0 0 1rem 0;
+		font-family: var(--font-sans);
+	}
+
+	.introduction-text {
 		font-size: 1.1rem;
 		line-height: 1.7;
-		color: #333;
+		color: var(--color-court-text);
 		margin: 0;
 		text-align: center;
-		font-family: Georgia, serif;
+		font-family: var(--font-serif);
 	}
 
-	.camera-section {
-		background: white;
-		border-radius: 2px;
+	.case-submission-card {
+		background: var(--color-court-surface);
+		border-radius: 4px;
 		padding: 1.5rem;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-		border-top: 3px solid #4a4a4a;
+		box-shadow: var(--shadow-base);
+		border-top: 3px solid var(--color-court-primary);
+		transition: box-shadow var(--timing-interactive) var(--ease-out);
 	}
 
-	.section-divider {
-		height: 2px;
-		background: #d1d1d1;
-		margin: 1.5rem 0;
-	}
-
-	.app-footer {
-		background: #2e2e2e;
-		color: white;
+	.section-heading {
+		font-size: 1.75rem;
+		color: var(--color-court-primary);
+		margin: 0 0 0.75rem 0;
 		text-align: center;
-		padding: 1.5rem 1rem;
-		margin-top: 2rem;
-		border-top: 3px solid #4a4a4a;
 	}
 
-	.app-footer p {
-		margin: 0;
-		opacity: 0.8;
+	.section-description {
+		font-size: 1rem;
+		line-height: 1.6;
+		color: var(--color-court-text-light);
+		margin: 0 0 1.5rem 0;
+		text-align: center;
+		max-width: 600px;
+		margin-left: auto;
+		margin-right: auto;
 	}
 
 	@media (max-width: 768px) {
-		.app-header h1 {
-			font-size: 1.8rem;
+		.introduction-card,
+		.case-submission-card {
+			padding: 1.25rem;
 		}
 
-		.court-seal {
-			width: 50px;
-			height: 50px;
-			left: 0.5rem;
+		.introduction-text {
+			font-size: 1rem;
 		}
 
-		.app-main {
-			padding: 1rem 0.5rem;
+		.section-heading {
+			font-size: 1.5rem;
 		}
 	}
 
 	@media (max-width: 480px) {
-		.app-header h1 {
-			font-size: 1.4rem;
+		.introduction-card,
+		.case-submission-card {
+			padding: 1rem;
+			border-radius: 2px;
 		}
 
-		.court-seal {
-			display: none;
+		.introduction-text {
+			font-size: 0.95rem;
+		}
+
+		.section-heading {
+			font-size: 1.3rem;
+		}
+
+		.section-description {
+			font-size: 0.9rem;
 		}
 	}
 </style>

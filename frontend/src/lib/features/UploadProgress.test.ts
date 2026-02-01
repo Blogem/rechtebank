@@ -32,7 +32,7 @@ describe('UploadProgress', () => {
     it('should show legal text', () => {
         render(UploadProgress, { props: { progress: 50 } });
 
-        expect(screen.getByText(/Uw meubel wordt beoordeeld/i)).toBeInTheDocument();
+        expect(screen.getByText(/Uw meubelstuk wordt beoordeeld/i)).toBeInTheDocument();
     });
 
     it('should handle 0% progress', () => {

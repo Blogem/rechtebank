@@ -7,7 +7,7 @@ describe('ErrorDisplay', () => {
     it('should display error message', () => {
         render(ErrorDisplay, { props: { message: 'Upload failed' } });
 
-        expect(screen.getByText(/Upload failed/i)).toBeInTheDocument();
+        expect(screen.getByText(/rechtbank kan het bewijsmateriaal momenteel niet beoordelen/i)).toBeInTheDocument();
     });
 
     it('should show legal-styled header', () => {
@@ -31,7 +31,7 @@ describe('ErrorDisplay', () => {
     it('should always show reset button', () => {
         render(ErrorDisplay, { props: { message: 'Test error' } });
 
-        expect(screen.getByText(/Terug naar Begin/i)).toBeInTheDocument();
+        expect(screen.getByText(/Nieuwe Zaak/i)).toBeInTheDocument();
     });
 
     it('should emit retry event when retry button clicked', async () => {
@@ -61,7 +61,7 @@ describe('ErrorDisplay', () => {
             }
         });
 
-        const resetButton = screen.getByText(/Terug naar Begin/i);
+        const resetButton = screen.getByText(/Nieuwe Zaak/i);
         await user.click(resetButton);
 
         expect(resetHandler).toHaveBeenCalledTimes(1);
@@ -70,7 +70,7 @@ describe('ErrorDisplay', () => {
     it('should show gavel icon', () => {
         const { container } = render(ErrorDisplay, { props: { message: 'Test error' } });
 
-        expect(container.querySelector('.gavel-icon')).toBeInTheDocument();
+        expect(container.querySelector('.error-icon-header')).toBeInTheDocument();
     });
 
     it('should show legal language text', () => {

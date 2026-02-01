@@ -304,18 +304,33 @@ Provides a manual rotation control overlay and "bakes" rotation into the final i
 	}
 
 	.button {
-		padding: 0.75rem 1.5rem;
+		padding: 0.875rem 2rem;
 		border: none;
-		border-radius: 2px;
+		border-radius: 4px;
 		font-size: 1rem;
+		font-family: var(--font-sans);
+		font-weight: 600;
 		cursor: pointer;
-		transition: all 0.2s;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		box-shadow: var(--shadow-base);
+		transition: all var(--timing-interactive) var(--ease-out);
 	}
 
 	.button:hover:not(:disabled) {
-		transform: translateY(-2px);
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+		transform: translateY(-3px);
+		box-shadow: var(--shadow-md);
+	}
+
+	.button:active:not(:disabled) {
+		transform: translateY(-1px) scale(0.98);
+		box-shadow: var(--shadow-sm);
+		transition: all var(--timing-quick) var(--ease-out);
+	}
+
+	.button:focus-visible {
+		outline: none;
+		box-shadow:
+			var(--shadow-md),
+			0 0 0 3px var(--color-court-accent);
 	}
 
 	.button:disabled {
@@ -324,21 +339,21 @@ Provides a manual rotation control overlay and "bakes" rotation into the final i
 	}
 
 	.button.primary {
-		background: #2c3e50;
+		background: var(--color-court-primary);
 		color: white;
 	}
 
 	.button.primary:hover:not(:disabled) {
-		background: #34495e;
+		background: #244a66;
 	}
 
 	.button.secondary {
-		background: #757575;
+		background: var(--color-court-text-light);
 		color: white;
 	}
 
 	.button.secondary:hover:not(:disabled) {
-		background: #616161;
+		background: #555555;
 	}
 
 	.error-message {

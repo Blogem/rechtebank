@@ -44,7 +44,7 @@ describe('CameraPermission', () => {
         render(CameraPermission, { props: { httpsRequired: false } });
 
         expect(
-            screen.getByText(/U kunt ook een foto uploaden als u geen camera toestemming wilt geven/i)
+            screen.getByText(/U kunt ook een foto uploaden als u geen camera toestemming wilt verlenen/i)
         ).toBeInTheDocument();
     });
 });

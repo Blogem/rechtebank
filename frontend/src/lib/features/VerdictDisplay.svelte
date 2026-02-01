@@ -168,82 +168,84 @@
 	}
 </script>
 
-<div class="verdict-display {getVerdictClass()}">
-	<div class="court-header">
-		<div class="gavel-icon">{getVerdictIcon()}</div>
-		<h1>Vonnis van de Rechtbank voor Meubilair</h1>
-	</div>
-
-	{#if imageData}
-		<div class="photo-display">
-			<img src={imageData} alt="Ingediend meubelstuk" class="verdict-photo" />
-		</div>
-	{/if}
-
-	<div class="case-metadata">
+<div class="verdict-document {getVerdictClass()}">
+	<div class="verdict-header">
+		<div class="verdict-icon">{getVerdictIcon()}</div>
+		<h1 class="verdict-title">Vonnis</h1>
 		<p class="case-number">Zaaknummer: {generateCaseNumber(verdict.timestamp)}</p>
 		<p class="case-date">{formatDutchTimestamp(verdict.timestamp)}</p>
 	</div>
-	<hr class="metadata-separator" />
 
-	<div class="verdict-content">
-		{#if !verdict.admissible}
-			<div class="case-dismissed">
-				<h2>Zaak Niet-Ontvankelijk</h2>
-				<p class="verdict-text">{verdict.verdict.crime}</p>
-				<p class="verdict-text">{verdict.verdict.observation}</p>
-				<p class="legal-note">
+	{#if imageData}
+		<section class="evidence-section">
+			<h2 class="section-label">Bewijsmateriaal A</h2>
+			<div class="photo-evidence">
+				<img src={imageData} alt="Ingediend meubelstuk" class="evidence-photo" />
+			</div>
+		</section>
+	{/if}
+
+	{#if !verdict.admissible}
+		<section class="verdict-section">
+			<h2 class="section-heading">Zaak Niet-Ontvankelijk</h2>
+			<div class="section-content">
+				<p class="legal-text">{verdict.verdict.crime}</p>
+				<p class="legal-text">{verdict.verdict.observation}</p>
+				<p class="legal-notice">
 					<em>Dit object is geen meubelstuk en valt buiten de jurisdictie van deze rechtbank.</em>
 				</p>
 			</div>
-		{:else}
-			<div class="score-display {getScoreClass(verdict.score)}">
-				<div class="score-number">{verdict.score}</div>
-				<div class="score-label">van 10</div>
-			</div>
-
-			<div class="verdict-type">
-				<h2>
-					{#if verdict.verdict.verdictType === 'vrijspraak'}
-						Vrijspraak
-					{:else if verdict.verdict.verdictType === 'waarschuwing'}
-						Waarschuwing
-					{:else}
-						Schuldig Bevonden
-					{/if}
-				</h2>
-			</div>
-
-			<div class="verdict-body">
-				<p class="verdict-text">{verdict.verdict.observation}</p>
-
-				<div class="crime-section">
-					<h3>Overtreding:</h3>
-					<p>{verdict.verdict.crime}</p>
-				</div>
-
-				<div class="reasoning-section">
-					<h3>Juridische Overwegingen:</h3>
-					<p>{verdict.verdict.reasoning}</p>
-				</div>
-
-				<div class="sentence">
-					<h3>Uitspraak:</h3>
-					<p>{verdict.verdict.sentence}</p>
+		</section>
+	{:else}
+		<section class="verdict-section">
+			<h2 class="section-heading">Feiten</h2>
+			<div class="section-content">
+				<p class="legal-text">{verdict.verdict.observation}</p>
+				<div class="score-badge {getScoreClass(verdict.score)}">
+					<span class="score-number">{verdict.score}</span>
+					<span class="score-label">/10</span>
 				</div>
 			</div>
-		{/if}
-	</div>
+		</section>
+
+		<section class="verdict-section">
+			<h2 class="section-heading">Overwegingen</h2>
+			<div class="section-content">
+				<div class="consideration-item">
+					<h3 class="consideration-label">Overtreding:</h3>
+					<p class="legal-text">{verdict.verdict.crime}</p>
+				</div>
+				<div class="consideration-item">
+					<h3 class="consideration-label">Juridische Grondslag:</h3>
+					<p class="legal-text">{verdict.verdict.reasoning}</p>
+				</div>
+			</div>
+		</section>
+
+		<section class="verdict-section uitspraak">
+			<h2 class="section-heading">
+				{#if verdict.verdict.verdictType === 'vrijspraak'}
+					Vrijspraak
+				{:else if verdict.verdict.verdictType === 'waarschuwing'}
+					Waarschuwing
+				{:else}
+					Schuldig Bevonden
+				{/if}
+			</h2>
+			<div class="section-content">
+				<p class="legal-text">{verdict.verdict.sentence}</p>
+			</div>
+		</section>
+	{/if}
+
+	<footer class="verdict-footer">
+		<p class="proclamation">Uitgesproken in het openbaar</p>
+		<p class="verdict-seal">⚖️</p>
+	</footer>
 
 	<div class="verdict-actions">
 		<button onclick={shareVerdict} class="action-button secondary">Deel Vonnis</button>
-
-		<button onclick={resetFlow} class="action-button primary">Dien Ander Meubelstuk In</button>
-	</div>
-
-	<div class="court-seal">
-		<p><em>Uitgesproken in het openbaar</em></p>
-		<p><small>{new Date(verdict.timestamp).toLocaleDateString('nl-NL')}</small></p>
+		<button onclick={resetFlow} class="action-button primary">Nieuwe Zaak</button>
 	</div>
 </div>
 
@@ -254,262 +256,317 @@
 {/if}
 
 <style>
-	.verdict-display {
+	.verdict-document {
 		max-width: 800px;
-		margin: 2rem auto;
-		padding: 2rem;
-		background: #fff;
-		border-radius: 2px;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-		font-family: Georgia, serif;
-		border-top: 3px solid #4a4a4a;
+		margin: 0 auto;
+		background: var(--color-court-surface);
+		border-radius: 4px;
+		box-shadow: var(--shadow-base);
+		overflow: hidden;
+		opacity: 0;
+		transform: translateY(8px);
+		animation: revealVerdict var(--timing-reveal) var(--ease-out) forwards;
 	}
 
-	.court-header {
+	@keyframes revealVerdict {
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.verdict-header {
+		background: var(--color-court-primary);
+		color: white;
 		text-align: center;
-		border-bottom: 3px double #2c3e50;
-		padding-bottom: 1.5rem;
-		margin-bottom: 2rem;
+		padding: 2rem 1.5rem;
+		border-bottom: 3px solid var(--color-court-accent);
 	}
 
-	.gavel-icon {
-		font-size: 3rem;
-		margin-bottom: 0.5rem;
+	.verdict-icon {
+		font-size: 2.5rem;
+		margin-bottom: 0.75rem;
+		opacity: 0;
+		animation: fadeIn var(--timing-reveal) var(--ease-out) 0.1s forwards;
 	}
 
-	.court-header h1 {
-		color: #2c3e50;
-		font-size: 1.8rem;
-		margin: 0;
+	.verdict-title {
+		font-size: 2rem;
+		margin: 0 0 1rem 0;
+		color: white;
+		letter-spacing: 0.02em;
+	}
+
+	.case-number {
+		font-size: 0.9rem;
+		opacity: 0.9;
+		margin: 0.25rem 0;
+		font-family: var(--font-sans);
+	}
+
+	.case-date {
+		font-size: 0.85rem;
+		opacity: 0.85;
+		margin: 0.25rem 0;
+		font-family: var(--font-sans);
+		font-style: italic;
+	}
+
+	.evidence-section {
+		padding: 2rem;
+		background: var(--color-court-bg);
+		border-bottom: 1px solid var(--color-court-border);
+		opacity: 0;
+		animation: fadeInSection var(--timing-reveal) var(--ease-out) 0.2s forwards;
+	}
+
+	.section-label {
+		font-size: 0.85rem;
 		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--color-court-accent);
+		margin: 0 0 1rem 0;
+		font-family: var(--font-sans);
+		text-align: center;
 	}
 
-	.photo-display {
+	.photo-evidence {
 		display: flex;
 		justify-content: center;
-		margin: 2rem 0;
+		background: white;
 		padding: 1rem;
-		background: #f8f9fa;
-		border: 2px solid #2c3e50;
+		border: 2px solid var(--color-court-border);
 		border-radius: 2px;
 	}
 
-	.verdict-photo {
+	.evidence-photo {
 		max-width: 100%;
-		max-height: 500px;
+		max-height: 400px;
 		width: auto;
 		height: auto;
 		display: block;
-		border-radius: 2px;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		box-shadow: var(--shadow-sm);
 	}
 
-	.case-metadata {
-		text-align: center;
-		margin: 1.5rem 0;
-		font-size: 0.9rem;
-		color: #666;
-	}
-
-	.case-number,
-	.case-date {
-		margin: 0.5rem 0;
-	}
-
-	.metadata-separator {
-		border: none;
-		border-top: 2px solid #d1d1d1;
-		margin: 1.5rem 0;
-	}
-
-	.verdict-content {
-		margin: 2rem 0;
-	}
-
-	.score-display {
-		text-align: center;
-		margin: 2rem 0;
+	.verdict-section {
 		padding: 2rem;
-		border-radius: 2px;
+		border-bottom: 1px solid var(--color-court-border);
+		opacity: 0;
+		animation: fadeInSection var(--timing-reveal) var(--ease-out) 0.3s forwards;
+	}
+
+	.verdict-section:nth-of-type(3) {
+		animation-delay: 0.4s;
+	}
+
+	.verdict-section:nth-of-type(4) {
+		animation-delay: 0.5s;
+	}
+
+	.verdict-section.uitspraak {
+		background: #fffef8;
+		border-left: 4px solid var(--color-court-accent);
+		animation-delay: 0.6s;
+	}
+
+	@keyframes fadeInSection {
+		to {
+			opacity: 1;
+		}
+	}
+
+	@keyframes fadeIn {
+		to {
+			opacity: 1;
+		}
+	}
+
+	.section-heading {
+		font-size: 1.5rem;
+		color: var(--color-court-primary);
+		margin: 0 0 1.25rem 0;
+		padding-bottom: 0.75rem;
+		border-bottom: 2px solid var(--color-court-border);
+	}
+
+	.section-content {
+		line-height: 1.75;
+		color: var(--color-court-text);
+	}
+
+	.legal-text {
+		font-size: 1.05rem;
+		margin: 1rem 0;
+		text-align: justify;
+		font-family: var(--font-serif);
+	}
+
+	.legal-notice {
+		font-style: italic;
+		color: var(--color-court-text-light);
+		margin-top: 1.5rem;
+		text-align: center;
+		font-size: 0.95rem;
+	}
+
+	.score-badge {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 0.25rem;
+		background: var(--color-court-primary);
+		color: white;
+		padding: 0.75rem 1.5rem;
+		border-radius: 4px;
+		margin-top: 1.5rem;
+		box-shadow: var(--shadow-sm);
+	}
+
+	.score-badge.excellent {
+		background: #28a745;
+	}
+
+	.score-badge.moderate {
+		background: #ffc107;
+		color: var(--color-court-text);
+	}
+
+	.score-badge.poor {
+		background: #dc3545;
 	}
 
 	.score-number {
-		font-size: 5rem;
-		font-weight: bold;
-		line-height: 1;
+		font-size: 2rem;
+		font-weight: 700;
+		font-family: var(--font-serif);
 	}
 
 	.score-label {
-		font-size: 1.2rem;
-		opacity: 0.8;
-		margin-top: 0.5rem;
+		font-size: 1rem;
+		opacity: 0.9;
 	}
 
-	.score-display.excellent {
-		background: linear-gradient(135deg, #28a745, #20c997);
-		color: white;
-	}
-
-	.score-display.good {
-		background: linear-gradient(135deg, #17a2b8, #3498db);
-		color: white;
-	}
-
-	.score-display.moderate {
-		background: linear-gradient(135deg, #ffc107, #fd7e14);
-		color: white;
-	}
-
-	.score-display.poor {
-		background: linear-gradient(135deg, #dc3545, #c82333);
-		color: white;
-	}
-
-	.verdict-type {
-		text-align: center;
+	.consideration-item {
 		margin: 1.5rem 0;
 	}
 
-	.verdict-type h2 {
-		color: #2c3e50;
-		font-size: 1.8rem;
-		font-weight: 600;
-	}
-
-	.verdict-body {
-		line-height: 1.8;
-		color: #333;
-	}
-
-	.verdict-text {
-		font-size: 1.1rem;
-		margin: 1.5rem 0;
-		text-align: justify;
-	}
-
-	.angle-deviation {
-		background: #f8f9fa;
-		padding: 1rem;
-		border-left: 4px solid #2c3e50;
-		margin: 1.5rem 0;
-	}
-
-	.sentence {
-		background: #fff3cd;
-		border: 2px solid #ffc107;
-		padding: 1.5rem;
-		border-radius: 4px;
-		margin: 2rem 0;
-	}
-
-	.sentence h3 {
-		color: #856404;
+	.consideration-item:first-child {
 		margin-top: 0;
 	}
 
-	.crime-section,
-	.reasoning-section {
-		background: #f8f9fa;
-		padding: 1.5rem;
-		border-left: 4px solid #2c3e50;
-		margin: 1.5rem 0;
-	}
-
-	.crime-section h3,
-	.reasoning-section h3 {
-		color: #2c3e50;
-		margin-top: 0;
+	.consideration-label {
+		font-size: 1rem;
 		font-weight: 600;
+		color: var(--color-court-accent);
+		margin: 0 0 0.5rem 0;
+		font-family: var(--font-sans);
+		text-transform: uppercase;
+		letter-spacing: 0.02em;
+		font-size: 0.85rem;
 	}
 
-	.case-dismissed {
+	.verdict-footer {
 		text-align: center;
-		padding: 2rem;
+		padding: 2rem 1.5rem;
+		background: var(--color-court-bg);
+		color: var(--color-court-text-light);
 	}
 
-	.case-dismissed h2 {
-		color: #dc3545;
-		font-size: 2rem;
-		font-weight: 600;
-	}
-
-	.legal-note {
+	.proclamation {
 		font-style: italic;
-		color: #666;
-		margin-top: 1rem;
+		margin: 0 0 1rem 0;
+		font-family: var(--font-serif);
+	}
+
+	.verdict-seal {
+		font-size: 2rem;
+		margin: 0;
+		opacity: 0;
+		animation: sealAppear 600ms var(--ease-out) 0.8s forwards;
+	}
+
+	@keyframes sealAppear {
+		from {
+			opacity: 0;
+			transform: scale(0.9);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
 	}
 
 	.verdict-actions {
 		display: flex;
 		gap: 1rem;
+		padding: 1.5rem 2rem 2rem;
 		justify-content: center;
-		margin: 2rem 0;
-		padding-top: 2rem;
-		border-top: 1px solid #dee2e6;
+		flex-wrap: wrap;
 	}
 
 	.action-button {
-		padding: 0.75rem 1.5rem;
+		padding: 0.875rem 2rem;
 		font-size: 1rem;
 		border: none;
-		border-radius: 2px;
+		border-radius: 4px;
 		cursor: pointer;
-		transition: all 0.2s;
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-		font-weight: 500;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		font-family: var(--font-sans);
+		font-weight: 600;
+		box-shadow: var(--shadow-base);
+		transition: all var(--timing-interactive) var(--ease-out);
+		position: relative;
 	}
 
 	.action-button:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+		transform: translateY(-3px);
+		box-shadow: var(--shadow-md);
+	}
+
+	.action-button:active {
+		transform: translateY(-1px) scale(0.98);
+		box-shadow: var(--shadow-sm);
+		transition: all var(--timing-quick) var(--ease-out);
+	}
+
+	.action-button:focus-visible {
+		outline: none;
+		box-shadow:
+			var(--shadow-md),
+			0 0 0 3px var(--color-court-accent);
 	}
 
 	.action-button.primary {
-		background: #2c3e50;
+		background: var(--color-court-primary);
 		color: white;
 	}
 
 	.action-button.primary:hover {
-		background: #34495e;
+		background: #244a66;
 	}
 
 	.action-button.secondary {
-		background: #757575;
+		background: var(--color-court-text-light);
 		color: white;
 	}
 
 	.action-button.secondary:hover {
-		background: #616161;
+		background: #555555;
 	}
 
-	.action-button.secondary:hover {
-		background: #5a6268;
+	.verdict-document.guilty {
+		border-top: 4px solid #dc3545;
 	}
 
-	.court-seal {
-		text-align: center;
-		margin-top: 2rem;
-		padding-top: 1.5rem;
-		border-top: 1px solid #dee2e6;
-		color: #666;
-		font-style: italic;
+	.verdict-document.acquittal {
+		border-top: 4px solid #28a745;
 	}
 
-	.verdict-display.guilty {
-		border-top: 5px solid #dc3545;
+	.verdict-document.warning {
+		border-top: 4px solid #ffc107;
 	}
 
-	.verdict-display.acquittal {
-		border-top: 5px solid #28a745;
-	}
-
-	.verdict-display.warning {
-		border-top: 5px solid #ff9800;
-	}
-
-	.verdict-display.dismissed {
-		border-top: 5px solid #6c757d;
+	.verdict-document.dismissed {
+		border-top: 4px solid #6c757d;
 	}
 
 	.toast {
@@ -517,18 +574,18 @@
 		bottom: 2rem;
 		left: 50%;
 		transform: translateX(-50%) translateY(100px);
-		background: #2c3e50;
+		background: var(--color-court-primary);
 		color: white;
 		padding: 1rem 1.5rem;
 		border-radius: 8px;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+		box-shadow: var(--shadow-lg);
+		font-family: var(--font-sans);
 		font-size: 0.95rem;
 		z-index: 1000;
 		max-width: 90%;
 		word-wrap: break-word;
 		opacity: 0;
-		transition: all 0.3s ease-in-out;
+		transition: all var(--timing-interactive) var(--ease-out);
 	}
 
 	.toast.visible {
@@ -536,30 +593,75 @@
 		transform: translateX(-50%) translateY(0);
 	}
 
+	@media (prefers-reduced-motion: reduce) {
+		.verdict-document,
+		.verdict-section,
+		.evidence-section,
+		.verdict-icon,
+		.verdict-seal {
+			animation: none;
+			opacity: 1;
+			transform: none;
+		}
+	}
+
 	@media (max-width: 768px) {
-		.verdict-display {
-			padding: 1rem;
-			margin: 1rem;
+		.verdict-header {
+			padding: 1.5rem 1rem;
 		}
 
-		.court-header h1 {
-			font-size: 1.4rem;
+		.verdict-title {
+			font-size: 1.5rem;
 		}
 
-		.score-number {
-			font-size: 3.5rem;
+		.verdict-section,
+		.evidence-section {
+			padding: 1.5rem 1rem;
+		}
+
+		.section-heading {
+			font-size: 1.3rem;
+		}
+
+		.legal-text {
+			font-size: 1rem;
+		}
+
+		.evidence-photo {
+			max-height: 300px;
 		}
 
 		.verdict-actions {
 			flex-direction: column;
+			padding: 1rem;
 		}
 
 		.action-button {
 			width: 100%;
 		}
+	}
 
-		.verdict-photo {
-			max-height: 300px;
+	@media (max-width: 480px) {
+		.verdict-header {
+			padding: 1rem 0.75rem;
+		}
+
+		.verdict-title {
+			font-size: 1.25rem;
+		}
+
+		.verdict-section,
+		.evidence-section {
+			padding: 1rem 0.75rem;
+		}
+
+		.section-heading {
+			font-size: 1.2rem;
+		}
+
+		.legal-text {
+			font-size: 0.95rem;
+			text-align: left;
 		}
 	}
 </style>

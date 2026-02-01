@@ -1,0 +1,135 @@
+/* Court Branding System - Rechtbank voor Meubilair */
+
+/* Font Face Declarations */
+@font-face {
+    font-family: 'Cormorant Garamond';
+    src: url('/fonts/cormorant-garamond-regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Cormorant Garamond';
+    src: url('/fonts/cormorant-garamond-bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Source Sans 3';
+    src: url('/fonts/source-sans-3-regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Source Sans 3';
+    src: url('/fonts/source-sans-3-semibold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* CSS Custom Properties - Court Branding Tokens */
+:root {
+    /* Typography */
+    --font-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    --font-sans: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    /* Color Palette */
+    --color-court-primary: #1a3a52;
+    /* Deep blue for header, footer, primary buttons */
+    --color-court-accent: #b8860b;
+    /* Muted gold/bronze for labels, emphasis */
+    --color-court-bg: #f5f1e8;
+    /* Warm neutral "paper-like" background */
+    --color-court-surface: #ffffff;
+    /* White for cards/documents */
+    --color-court-border: #d4c5a9;
+    /* Soft neutral for borders and dividers */
+    --color-court-text: #2d2d2d;
+    /* Dark text color */
+    --color-court-text-light: #666666;
+    /* Lighter text for secondary content */
+
+    /* Shadow System - Layered shadows (ambient + directional) */
+    --shadow-sm:
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        0 1px 3px rgba(0, 0, 0, 0.02);
+    --shadow-base:
+        0 2px 4px rgba(0, 0, 0, 0.06),
+        0 3px 6px rgba(0, 0, 0, 0.04);
+    --shadow-md:
+        0 4px 8px rgba(0, 0, 0, 0.08),
+        0 6px 12px rgba(0, 0, 0, 0.06);
+    --shadow-lg:
+        0 8px 16px rgba(0, 0, 0, 0.1),
+        0 12px 24px rgba(0, 0, 0, 0.08);
+
+    /* Transition Timing */
+    --timing-default: 200ms;
+    --timing-interactive: 300ms;
+    --timing-reveal: 400ms;
+    --timing-quick: 80ms;
+
+    /* Easing */
+    --ease-out: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+    --ease-in-out: cubic-bezier(0.645, 0.045, 0.355, 1.000);
+}
+
+/* Global Styles */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--color-court-text);
+    background: var(--color-court-bg);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0;
+}
+
+p {
+    margin: 0;
+}
+
+button {
+    font-family: var(--font-sans);
+    cursor: pointer;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

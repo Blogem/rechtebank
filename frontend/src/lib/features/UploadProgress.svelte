@@ -6,27 +6,27 @@
 <div class="upload-progress">
 	<div class="court-icon">⚖️</div>
 
-	<h2>{message}</h2>
+	<h2 class="progress-heading">{message}</h2>
 
 	<div class="progress-bar">
 		<div class="progress-fill" style="width: {progress}%"></div>
 	</div>
 
-	<p class="legal-text">
-		<em>Uw meubel wordt beoordeeld op rechtheid en deugdelijkheid...</em>
+	<p class="legal-notice">
+		<em>Uw meubelstuk wordt beoordeeld op rechtheid en deugdelijkheid</em>
 	</p>
 </div>
 
 <style>
 	.upload-progress {
 		max-width: 600px;
-		margin: 3rem auto;
+		margin: 0 auto;
 		padding: 3rem 2rem;
 		text-align: center;
-		background: #f8f9fa;
-		border-radius: 2px;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-		border-top: 3px solid #4a4a4a;
+		background: var(--color-court-surface);
+		border-radius: 4px;
+		box-shadow: var(--shadow-base);
+		border-top: 3px solid var(--color-court-accent);
 	}
 
 	.court-icon {
@@ -45,32 +45,53 @@
 		}
 	}
 
-	h2 {
-		color: #2c3e50;
+	.progress-heading {
+		color: var(--color-court-primary);
 		margin-bottom: 1.5rem;
-		font-family: Georgia, serif;
+		font-size: 1.5rem;
 	}
 
 	.progress-bar {
 		width: 100%;
 		height: 30px;
-		background: #e9ecef;
-		border-radius: 2px;
+		background: var(--color-court-bg);
+		border-radius: 4px;
 		overflow: hidden;
 		margin: 1.5rem 0;
 		box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+		border: 1px solid var(--color-court-border);
 	}
 
 	.progress-fill {
 		height: 100%;
-		background: #2c3e50;
-		transition: width 0.3s ease-out;
-		border-radius: 2px;
+		background: var(--color-court-primary);
+		transition: width var(--timing-interactive) var(--ease-out);
 	}
 
-	.legal-text {
-		color: #666;
+	.legal-notice {
+		color: var(--color-court-text-light);
 		font-style: italic;
 		margin-top: 1rem;
+		font-size: 0.95rem;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.court-icon {
+			animation: none;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.upload-progress {
+			padding: 2rem 1.5rem;
+		}
+
+		.court-icon {
+			font-size: 3rem;
+		}
+
+		.progress-heading {
+			font-size: 1.3rem;
+		}
 	}
 </style>

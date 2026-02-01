@@ -1,14 +1,15 @@
 # Rechtbank voor Meubilair - Frontend
 
-Interactive web application for the "Furniture Court" - submit photos of your furniture for comedic legal judgment.
+Interactive web application for the "Furniture Court" - submit photos of your furniture for comedic legal judgment with an official Dutch court aesthetic.
 
 ## Features
 
 - 📸 **Photo Capture**: Native camera integration via file input
 - 🔄 **Manual Rotation**: Rotate photos before submission with visual preview
 - 📤 **Photo Upload**: Submit furniture photos for AI-powered judgment
-- 🏛️ **Verdict Display**: Receive comedic legal verdicts with Dutch legal styling
-- 📱 **Mobile-First**: Optimized for smartphone use
+- 🏛️ **Verdict Display**: Receive comedic legal verdicts with formal Dutch court styling
+- 📱 **Mobile-First**: Optimized for smartphone use with official government-style design
+- ⚖️ **Court Branding**: Consistent Dutch judicial aesthetic with custom typography (Cormorant Garamond + Source Sans 3)
 
 ## Technology Stack
 
@@ -17,7 +18,8 @@ Interactive web application for the "Furniture Court" - submit photos of your fu
 - **Testing**: Vitest + Testing Library
 - **Architecture**: Hexagonal (Ports & Adapters)
 - **Deployment**: Docker (multi-stage) + Nginx Alpine
-- **Styling**: Component-scoped CSS
+- **Styling**: Component-scoped CSS with court branding tokens
+- **Typography**: Self-hosted Cormorant Garamond (serif) and Source Sans 3 (sans-serif)
 
 ## Prerequisites
 

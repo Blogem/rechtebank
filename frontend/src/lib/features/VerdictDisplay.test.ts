@@ -65,7 +65,7 @@ describe('VerdictDisplay', () => {
         render(VerdictDisplay, { props: { verdict: mockGuiltyVerdict } });
 
         expect(screen.getByText('5')).toBeInTheDocument();
-        expect(screen.getByText('van 10')).toBeInTheDocument();
+        expect(screen.getByText('/10')).toBeInTheDocument();
         expect(screen.getByRole('heading', { name: /schuldig bevonden/i })).toBeInTheDocument();
     });
 
@@ -93,28 +93,28 @@ describe('VerdictDisplay', () => {
     it('should apply correct CSS class for guilty verdict based on verdictType', () => {
         const { container } = render(VerdictDisplay, { props: { verdict: mockGuiltyVerdict } });
 
-        const verdictDisplay = container.querySelector('.verdict-display');
+        const verdictDisplay = container.querySelector('.verdict-document');
         expect(verdictDisplay).toHaveClass('guilty');
     });
 
     it('should apply correct CSS class for acquittal verdict based on verdictType', () => {
         const { container } = render(VerdictDisplay, { props: { verdict: mockAcquittalVerdict } });
 
-        const verdictDisplay = container.querySelector('.verdict-display');
+        const verdictDisplay = container.querySelector('.verdict-document');
         expect(verdictDisplay).toHaveClass('acquittal');
     });
 
     it('should apply correct CSS class for warning verdict based on verdictType', () => {
         const { container } = render(VerdictDisplay, { props: { verdict: mockWarningVerdict } });
 
-        const verdictDisplay = container.querySelector('.verdict-display');
+        const verdictDisplay = container.querySelector('.verdict-document');
         expect(verdictDisplay).toHaveClass('warning');
     });
 
     it('should display correct icon for vrijspraak verdict', () => {
         render(VerdictDisplay, { props: { verdict: mockAcquittalVerdict } });
 
-        expect(screen.getByText('🎉')).toBeInTheDocument();
+        expect(screen.getByText('✅')).toBeInTheDocument();
     });
 
     it('should display correct icon for waarschuwing verdict', () => {
@@ -124,15 +124,17 @@ describe('VerdictDisplay', () => {
     });
 
     it('should display correct icon for schuldig verdict', () => {
-        render(VerdictDisplay, { props: { verdict: mockGuiltyVerdict } });
+        const { container } = render(VerdictDisplay, { props: { verdict: mockGuiltyVerdict } });
 
-        expect(screen.getByText('⚖️')).toBeInTheDocument();
+        const verdictIcon = container.querySelector('.verdict-icon');
+        expect(verdictIcon).toBeInTheDocument();
+        expect(verdictIcon?.textContent).toBe('⚖️');
     });
 
     it('should apply correct score class for excellent score', () => {
         const { container } = render(VerdictDisplay, { props: { verdict: mockAcquittalVerdict } });
 
-        const scoreDisplay = container.querySelector('.score-display');
+        const scoreDisplay = container.querySelector('.score-badge');
         expect(scoreDisplay).toHaveClass('excellent');
     });
 
@@ -146,7 +148,7 @@ describe('VerdictDisplay', () => {
             }
         });
 
-        const resetButton = screen.getByText(/Dien Ander Meubelstuk In/i);
+        const resetButton = screen.getByText(/Nieuwe Zaak/i);
         await user.click(resetButton);
 
         expect(resetHandler).toHaveBeenCalledTimes(1);

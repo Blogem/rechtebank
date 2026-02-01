@@ -47,18 +47,18 @@
 	$: userFriendlyMessage = getUserFriendlyMessage(message);
 </script>
 
-<div class="error-display">
-	<div class="court-header">
-		<div class="gavel-icon">🔨</div>
-		<h1>Zaak Opgeschort</h1>
+<div class="error-document">
+	<div class="error-header">
+		<div class="error-icon-header">🔨</div>
+		<h1 class="error-title">Zaak Opgeschort</h1>
 	</div>
 
 	<div class="error-content">
 		<div class="error-icon">⚠️</div>
 		<p class="error-message">{userFriendlyMessage}</p>
 
-		<div class="legal-language">
-			<p><em>De rechtbank kan op dit moment geen uitspraak doen.</em></p>
+		<div class="legal-notice">
+			<p><em>De rechtbank kan op dit moment geen uitspraak doen over uw zaak.</em></p>
 		</div>
 
 		<div class="technical-details">
@@ -78,131 +78,160 @@
 		{#if retryable}
 			<button onclick={retry} class="action-button primary">Probeer Opnieuw</button>
 		{/if}
-
-		<button onclick={reset} class="action-button secondary">Terug naar Begin</button>
+		<button onclick={reset} class="action-button secondary">Nieuwe Zaak</button>
 	</div>
 </div>
 
 <style>
-	.error-display {
+	.error-document {
 		max-width: 600px;
-		margin: 2rem auto;
-		padding: 2rem;
-		background: #ffffff;
-		border-radius: 2px;
-		border-top: 3px solid #4a4a4a;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-		font-family: Georgia, serif;
+		margin: 0 auto;
+		background: var(--color-court-surface);
+		border-radius: 4px;
+		box-shadow: var(--shadow-base);
+		border-top: 4px solid #dc3545;
+		overflow: hidden;
+		opacity: 0;
+		transform: translateY(8px);
+		animation: revealError var(--timing-reveal) var(--ease-out) forwards;
 	}
 
-	.court-header {
+	@keyframes revealError {
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.error-header {
+		background: var(--color-court-primary);
+		color: white;
 		text-align: center;
-		border-bottom: 3px double #2c3e50;
-		padding-bottom: 1.5rem;
-		margin-bottom: 2rem;
+		padding: 2rem 1.5rem;
+		border-bottom: 3px solid #dc3545;
 	}
 
-	.gavel-icon {
-		font-size: 3rem;
-		margin-bottom: 0.5rem;
+	.error-icon-header {
+		font-size: 2.5rem;
+		margin-bottom: 0.75rem;
 	}
 
-	.court-header h1 {
-		color: #2c3e50;
-		font-size: 1.8rem;
+	.error-title {
+		font-size: 1.75rem;
 		margin: 0;
+		color: white;
 	}
 
 	.error-content {
 		text-align: center;
-		margin: 2rem 0;
+		padding: 2rem 1.5rem;
 	}
 
 	.error-icon {
-		font-size: 4rem;
-		margin-bottom: 1rem;
+		font-size: 3.5rem;
+		margin-bottom: 1.25rem;
 	}
 
 	.error-message {
-		font-size: 1.2rem;
+		font-size: 1.15rem;
 		color: #dc3545;
 		margin: 1.5rem 0;
 		line-height: 1.6;
+		font-family: var(--font-serif);
 	}
 
-	.legal-language {
+	.legal-notice {
 		font-style: italic;
-		color: #666;
+		color: var(--color-court-text-light);
 		margin-top: 1.5rem;
+		font-size: 0.95rem;
 	}
 
 	.error-actions {
 		display: flex;
 		gap: 1rem;
 		justify-content: center;
-		margin-top: 2rem;
-		padding-top: 2rem;
-		border-top: 1px solid #dee2e6;
+		padding: 1.5rem 2rem 2rem;
+		border-top: 1px solid var(--color-court-border);
 		flex-wrap: wrap;
 	}
 
 	.action-button {
-		padding: 1rem 2rem;
+		padding: 0.875rem 2rem;
 		font-size: 1rem;
 		border: none;
-		border-radius: 2px;
+		border-radius: 4px;
 		cursor: pointer;
-		transition: all 0.3s;
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-		font-weight: 500;
+		font-family: var(--font-sans);
+		font-weight: 600;
+		box-shadow: var(--shadow-base);
+		transition: all var(--timing-interactive) var(--ease-out);
+	}
+
+	.action-button:hover {
+		transform: translateY(-3px);
+		box-shadow: var(--shadow-md);
+	}
+
+	.action-button:active {
+		transform: translateY(-1px) scale(0.98);
+		box-shadow: var(--shadow-sm);
+		transition: all var(--timing-quick) var(--ease-out);
+	}
+
+	.action-button:focus-visible {
+		outline: none;
+		box-shadow:
+			var(--shadow-md),
+			0 0 0 3px var(--color-court-accent);
 	}
 
 	.action-button.primary {
-		background: #2c3e50;
+		background: var(--color-court-primary);
 		color: white;
 	}
 
 	.action-button.primary:hover {
-		background: #34495e;
+		background: #244a66;
 	}
 
 	.action-button.secondary {
-		background: #6c757d;
+		background: var(--color-court-text-light);
 		color: white;
 	}
 
 	.action-button.secondary:hover {
-		background: #5a6268;
+		background: #555555;
 	}
 
 	.technical-details {
 		margin-top: 2rem;
 		padding-top: 1.5rem;
-		border-top: 1px solid #dee2e6;
+		border-top: 1px solid var(--color-court-border);
 	}
 
 	.details-toggle {
 		background: transparent;
-		border: 1px solid #6c757d;
-		color: #6c757d;
+		border: 1px solid var(--color-court-text-light);
+		color: var(--color-court-text-light);
 		padding: 0.5rem 1rem;
-		border-radius: 2px;
+		border-radius: 4px;
 		cursor: pointer;
 		font-size: 0.9rem;
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-		transition: all 0.3s;
+		font-family: var(--font-sans);
+		transition: all var(--timing-default) var(--ease-out);
 	}
 
 	.details-toggle:hover {
-		background: #6c757d;
+		background: var(--color-court-text-light);
 		color: white;
 	}
 
 	.details-content {
 		margin-top: 1rem;
-		background: #f8f9fa;
-		border: 1px solid #dee2e6;
-		border-radius: 2px;
+		background: var(--color-court-bg);
+		border: 1px solid var(--color-court-border);
+		border-radius: 4px;
 		padding: 1rem;
 		text-align: left;
 		max-height: 300px;
@@ -213,8 +242,39 @@
 		margin: 0;
 		font-family: 'Courier New', monospace;
 		font-size: 0.85rem;
-		color: #495057;
+		color: var(--color-court-text);
 		white-space: pre-wrap;
 		word-wrap: break-word;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.error-document {
+			animation: none;
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.error-header {
+			padding: 1.5rem 1rem;
+		}
+
+		.error-title {
+			font-size: 1.5rem;
+		}
+
+		.error-content {
+			padding: 1.5rem 1rem;
+		}
+
+		.error-actions {
+			flex-direction: column;
+			padding: 1rem;
+		}
+
+		.action-button {
+			width: 100%;
+		}
 	}
 </style>
