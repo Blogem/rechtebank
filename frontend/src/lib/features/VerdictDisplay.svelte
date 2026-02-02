@@ -65,9 +65,10 @@
 				requestId: verdict.requestId
 			});
 
-			// Construct full shareable URL
+			// Construct full shareable URL using /vonnis/ as canonical route
+			// (legacy /verdict/ URLs are still supported via nginx rewrite)
 			const baseUrl = window.location.origin;
-			const shareUrl = `${baseUrl}/verdict/${shareResponse.id}`;
+			const shareUrl = `${baseUrl}/vonnis/${shareResponse.id}`;
 
 			// Get verdict text for sharing
 			let verdictText = '';

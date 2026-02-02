@@ -1,4 +1,6 @@
 <script lang="ts">
+	// Canonical route for shared verdicts (was /verdict/[id], now /vonnis/[id])
+	// Legacy /verdict/[id] URLs are redirected via nginx rewrite for backward compatibility
 	import VerdictDisplay from '$lib/features/VerdictDisplay.svelte';
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';

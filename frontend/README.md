@@ -10,6 +10,7 @@ Interactive web application for the "Furniture Court" - submit photos of your fu
 - 🏛️ **Verdict Display**: Receive comedic legal verdicts with formal Dutch court styling
 - 📱 **Mobile-First**: Optimized for smartphone use with official government-style design
 - ⚖️ **Court Branding**: Consistent Dutch judicial aesthetic with custom typography (Cormorant Garamond + Source Sans 3)
+- 🔗 **Shareable Verdicts**: Share verdicts via `/vonnis/[id]` URLs (legacy `/verdict/[id]` URLs supported via nginx rewrite)
 
 ## Technology Stack
 
@@ -214,6 +215,10 @@ Upload a furniture photo for judgment.
 
 1. **Manual controls**: Use rotate left/right buttons to correct orientation
 2. **Preview**: Check photo preview before submitting
+
+### Verdict URL rewriting
+
+**Note**: The legacy `/verdict/[id]` URL rewrite to `/vonnis/[id]` only works when running through nginx (Docker/production). In pure development mode (`npm run dev`), only `/vonnis/[id]` routes will work. Use Docker Compose for testing URL rewrites locally.
 
 ### Upload failing
 
