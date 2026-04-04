@@ -8,6 +8,8 @@ env:
   REGISTRY: ghcr.io
   BACKEND_IMAGE: ghcr.io/blogem/rechtebank-backend
   FRONTEND_IMAGE: ghcr.io/blogem/rechtebank-frontend
+  MANIFEST_REPO: Blogem/infra-workloads
+  MANIFEST_PATH: manifests/rechtebank
 
 jobs:
   build-backend:
@@ -57,3 +59,27 @@ jobs:
           tags: |
             ${{ env.FRONTEND_IMAGE }}:sha-${{ github.sha }}
             ${{ env.FRONTEND_IMAGE }}:latest
+
+  update-manifests:
+    needs: [build-backend, build-frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout manifest repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.MANIFEST_REPO }}
+          token: ${{ secrets.MANIFEST_REPO_PAT }}
+
+      - name: Update image tags
+        run: |
+          sed -i "s|image: ${{ env.BACKEND_IMAGE }}:.*|image: ${{ env.BACKEND_IMAGE }}:sha-${{ github.sha }}|" ${{ env.MANIFEST_PATH }}/backend-deployment.yaml
+          sed -i "s|image: ${{ env.FRONTEND_IMAGE }}:.*|image: ${{ env.FRONTEND_IMAGE }}:sha-${{ github.sha }}|" ${{ env.MANIFEST_PATH }}/frontend-deployment.yaml
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ${{ env.MANIFEST_PATH }}/
+          git diff --staged --quiet && echo "No changes" && exit 0
+          git commit -m "deploy(rechtebank): update images to sha-${{ github.sha }}"
+          git push || (git pull --rebase && git push)
