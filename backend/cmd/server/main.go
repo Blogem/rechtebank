@@ -34,7 +34,7 @@ func main() {
 	}
 
 	// Log startup information
-	log.Printf("Starting Rechtebank Backend API")
+	log.Printf("Starting Rechtebank Backend API (k3s)")
 	log.Printf("  Port: %s", cfg.Port)
 	log.Printf("  Environment: %s", cfg.Environment)
 	log.Printf("  CORS Origin: %s", cfg.CORSOrigin)
