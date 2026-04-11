@@ -76,10 +76,16 @@ jobs:
           sed -i "s|image: ${{ env.FRONTEND_IMAGE }}:.*|image: ${{ env.FRONTEND_IMAGE }}:sha-${{ github.sha }}|" ${{ env.MANIFEST_PATH }}/frontend-deployment.yaml
 
       - name: Commit and push
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add ${{ env.MANIFEST_PATH }}/
           git diff --staged --quiet && echo "No changes" && exit 0
-          git commit -m "deploy(rechtebank): update images to sha-${{ github.sha }}"
+          DESCRIPTION=$(echo "$COMMIT_MSG" | head -n1 | cut -c1-72)
+          if [ -z "$DESCRIPTION" ]; then
+            DESCRIPTION="update images to sha-${GITHUB_SHA:0:12}"
+          fi
+          git commit -m "deploy(rechtebank): ${DESCRIPTION}"
           git push || (git pull --rebase && git push)
