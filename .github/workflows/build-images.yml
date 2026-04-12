@@ -3,6 +3,8 @@ name: Build and Push Images
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 
 env:
   REGISTRY: ghcr.io
@@ -93,7 +95,7 @@ jobs:
 
   build-backend:
     needs: [changes, go]
-    if: needs.changes.outputs.backend == 'true'
+    if: github.event_name == 'push' && needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -119,7 +121,7 @@ jobs:
 
   build-frontend:
     needs: [changes, frontend]
-    if: needs.changes.outputs.frontend == 'true'
+    if: github.event_name == 'push' && needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -146,6 +148,7 @@ jobs:
   update-manifests:
     needs: [go, frontend, build-backend, build-frontend]
     if: |
+      github.event_name == 'push' &&
       always() &&
       !contains(needs.*.result, 'failure') &&
       (needs.build-backend.result == 'success' || needs.build-frontend.result == 'success')
