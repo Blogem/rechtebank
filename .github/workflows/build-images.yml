@@ -56,6 +56,12 @@ jobs:
       - name: Test
         run: go test ./...
 
+      - name: Lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: latest
+          working-directory: backend
+
   frontend:
     name: Frontend CI
     needs: [changes]
