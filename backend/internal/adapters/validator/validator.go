@@ -9,21 +9,24 @@ import (
 
 const maxFileSize = 10 * 1024 * 1024 // 10MB
 
+// PhotoValidator validates photo uploads against size and format constraints.
 type PhotoValidator struct{}
 
+// NewPhotoValidator creates a new PhotoValidator.
 func NewPhotoValidator() *PhotoValidator {
 	return &PhotoValidator{}
 }
 
+// ValidatePhoto checks that the image data and metadata satisfy size and format requirements.
 func (v *PhotoValidator) ValidatePhoto(imageData []byte, metadata domain.PhotoMetadata) error {
 	// Validate file size
 	if metadata.Size > maxFileSize {
-		return errors.New("Photo file size must not exceed 10MB")
+		return errors.New("photo file size must not exceed 10MB")
 	}
 
 	// Validate format based on magic bytes
 	if !v.isSupportedFormat(imageData) {
-		return errors.New("Unsupported image format. Use JPEG, PNG, or WebP")
+		return errors.New("unsupported image format: use JPEG, PNG, or WebP")
 	}
 
 	return nil

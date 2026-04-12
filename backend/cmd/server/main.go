@@ -51,7 +51,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize Gemini analyzer: %v", err)
 	}
-	defer geminiAnalyzer.Close()
 
 	// 3. Photo Storage
 	photoStorage, err := storage.NewPhotoStorage(cfg.PhotoStoragePath)
@@ -82,7 +81,6 @@ func main() {
 
 	// Create context for cleanup goroutine
 	cleanupCtx, cleanupCancel := context.WithCancel(context.Background())
-	defer cleanupCancel()
 
 	// Start cleanup job in background
 	go func() {
@@ -132,11 +130,13 @@ func main() {
 
 	// Give outstanding requests 30 seconds to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
 	if err := server.Shutdown(ctx); err != nil {
+		cancel()
+		_ = geminiAnalyzer.Close()
 		log.Fatalf("Server forced to shutdown: %v", err)
 	}
+	cancel()
+	_ = geminiAnalyzer.Close()
 
 	log.Println("Server exited gracefully")
 }

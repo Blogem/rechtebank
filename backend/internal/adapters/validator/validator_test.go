@@ -68,7 +68,7 @@ func TestPhotoValidator_UnsupportedFormat_GIF(t *testing.T) {
 
 	err := v.ValidatePhoto(gifHeader, metadata)
 	assert.Error(t, err)
-	assert.Equal(t, "Unsupported image format. Use JPEG, PNG, or WebP", err.Error())
+	assert.Equal(t, "unsupported image format: use JPEG, PNG, or WebP", err.Error())
 }
 
 func TestPhotoValidator_UnsupportedFormat_BMP(t *testing.T) {
@@ -81,7 +81,7 @@ func TestPhotoValidator_UnsupportedFormat_BMP(t *testing.T) {
 
 	err := v.ValidatePhoto(bmpHeader, metadata)
 	assert.Error(t, err)
-	assert.Equal(t, "Unsupported image format. Use JPEG, PNG, or WebP", err.Error())
+	assert.Equal(t, "unsupported image format: use JPEG, PNG, or WebP", err.Error())
 }
 
 func TestPhotoValidator_FileSizeValidation_WithinLimit(t *testing.T) {
@@ -124,7 +124,7 @@ func TestPhotoValidator_FileSizeValidation_ExceedsLimit(t *testing.T) {
 
 	err := v.ValidatePhoto(jpegHeader, metadata)
 	assert.Error(t, err)
-	assert.Equal(t, "Photo file size must not exceed 10MB", err.Error())
+	assert.Equal(t, "photo file size must not exceed 10MB", err.Error())
 }
 
 func TestPhotoValidator_FileSizeValidation_VeryLarge(t *testing.T) {
@@ -139,7 +139,7 @@ func TestPhotoValidator_FileSizeValidation_VeryLarge(t *testing.T) {
 
 	err := v.ValidatePhoto(jpegHeader, metadata)
 	assert.Error(t, err)
-	assert.Equal(t, "Photo file size must not exceed 10MB", err.Error())
+	assert.Equal(t, "photo file size must not exceed 10MB", err.Error())
 }
 
 func TestPhotoValidator_InvalidData_TooShort(t *testing.T) {
@@ -153,5 +153,5 @@ func TestPhotoValidator_InvalidData_TooShort(t *testing.T) {
 
 	err := v.ValidatePhoto(shortData, metadata)
 	assert.Error(t, err)
-	assert.Equal(t, "Unsupported image format. Use JPEG, PNG, or WebP", err.Error())
+	assert.Equal(t, "unsupported image format: use JPEG, PNG, or WebP", err.Error())
 }

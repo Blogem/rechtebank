@@ -28,12 +28,16 @@ func TestVerdictHandler_GetByID_Success(t *testing.T) {
 	dateDir := "2026-02-01"
 	filename := "153045_abc123"
 	fullDir := filepath.Join(tmpDir, dateDir)
-	os.MkdirAll(fullDir, 0755)
+	if err := os.MkdirAll(fullDir, 0755); err != nil {
+		t.Fatalf("os.MkdirAll failed: %v", err)
+	}
 
 	// Write test photo
 	photoData := []byte{0xFF, 0xD8, 0xFF, 0xE0} // JPEG magic bytes
 	photoPath := filepath.Join(fullDir, filename+".jpg")
-	os.WriteFile(photoPath, photoData, 0644)
+	if err := os.WriteFile(photoPath, photoData, 0644); err != nil {
+		t.Fatalf("os.WriteFile failed: %v", err)
+	}
 
 	// Write test verdict JSON
 	verdictData := domain.VerdictResponse{
@@ -49,7 +53,9 @@ func TestVerdictHandler_GetByID_Success(t *testing.T) {
 	}
 	verdictJSON, _ := json.Marshal(verdictData)
 	jsonPath := filepath.Join(fullDir, filename+".json")
-	os.WriteFile(jsonPath, verdictJSON, 0644)
+	if err := os.WriteFile(jsonPath, verdictJSON, 0644); err != nil {
+		t.Fatalf("os.WriteFile failed: %v", err)
+	}
 
 	// Create handler
 	handler := NewVerdictHandler(tmpDir)
@@ -101,7 +107,7 @@ func TestVerdictHandler_GetByID_InvalidID(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	var response map[string]string
-	json.Unmarshal(w.Body.Bytes(), &response)
+	_ = json.Unmarshal(w.Body.Bytes(), &response)
 	assert.Contains(t, response["error"], "Invalid verdict ID")
 }
 
@@ -112,11 +118,15 @@ func TestVerdictHandler_GetByID_MissingVerdictJSON(t *testing.T) {
 	dateDir := "2026-02-01"
 	filename := "153045_abc123"
 	fullDir := filepath.Join(tmpDir, dateDir)
-	os.MkdirAll(fullDir, 0755)
+	if err := os.MkdirAll(fullDir, 0755); err != nil {
+		t.Fatalf("os.MkdirAll failed: %v", err)
+	}
 
 	photoData := []byte{0xFF, 0xD8, 0xFF, 0xE0}
 	photoPath := filepath.Join(fullDir, filename+".jpg")
-	os.WriteFile(photoPath, photoData, 0644)
+	if err := os.WriteFile(photoPath, photoData, 0644); err != nil {
+		t.Fatalf("os.WriteFile failed: %v", err)
+	}
 	// Don't create JSON file
 
 	handler := NewVerdictHandler(tmpDir)
@@ -132,7 +142,7 @@ func TestVerdictHandler_GetByID_MissingVerdictJSON(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, w.Code)
 
 	var response map[string]string
-	json.Unmarshal(w.Body.Bytes(), &response)
+	_ = json.Unmarshal(w.Body.Bytes(), &response)
 	assert.Contains(t, response["error"], "Verdict data not found")
 }
 
@@ -143,7 +153,9 @@ func TestVerdictHandler_GetByID_MissingPhoto(t *testing.T) {
 	dateDir := "2026-02-01"
 	filename := "153045_abc123"
 	fullDir := filepath.Join(tmpDir, dateDir)
-	os.MkdirAll(fullDir, 0755)
+	if err := os.MkdirAll(fullDir, 0755); err != nil {
+		t.Fatalf("os.MkdirAll failed: %v", err)
+	}
 
 	verdictData := domain.VerdictResponse{
 		Admissible: true,
@@ -151,7 +163,9 @@ func TestVerdictHandler_GetByID_MissingPhoto(t *testing.T) {
 	}
 	verdictJSON, _ := json.Marshal(verdictData)
 	jsonPath := filepath.Join(fullDir, filename+".json")
-	os.WriteFile(jsonPath, verdictJSON, 0644)
+	if err := os.WriteFile(jsonPath, verdictJSON, 0644); err != nil {
+		t.Fatalf("os.WriteFile failed: %v", err)
+	}
 	// Don't create photo file
 
 	handler := NewVerdictHandler(tmpDir)
@@ -167,7 +181,7 @@ func TestVerdictHandler_GetByID_MissingPhoto(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, w.Code)
 
 	var response map[string]string
-	json.Unmarshal(w.Body.Bytes(), &response)
+	_ = json.Unmarshal(w.Body.Bytes(), &response)
 	assert.Contains(t, response["error"], "Photo file not found")
 }
 
@@ -178,20 +192,28 @@ func TestVerdictHandler_GetByID_FileReadError(t *testing.T) {
 	dateDir := "2026-02-01"
 	filename := "153045_abc123"
 	fullDir := filepath.Join(tmpDir, dateDir)
-	os.MkdirAll(fullDir, 0755)
+	if err := os.MkdirAll(fullDir, 0755); err != nil {
+		t.Fatalf("os.MkdirAll failed: %v", err)
+	}
 
 	// Create files
 	photoPath := filepath.Join(fullDir, filename+".jpg")
-	os.WriteFile(photoPath, []byte{0xFF, 0xD8}, 0644)
+	if err := os.WriteFile(photoPath, []byte{0xFF, 0xD8}, 0644); err != nil {
+		t.Fatalf("os.WriteFile failed: %v", err)
+	}
 
 	verdictData := domain.VerdictResponse{Admissible: true}
 	verdictJSON, _ := json.Marshal(verdictData)
 	jsonPath := filepath.Join(fullDir, filename+".json")
-	os.WriteFile(jsonPath, verdictJSON, 0644)
+	if err := os.WriteFile(jsonPath, verdictJSON, 0644); err != nil {
+		t.Fatalf("os.WriteFile failed: %v", err)
+	}
 
 	// Make directory unreadable
-	os.Chmod(fullDir, 0000)
-	defer os.Chmod(fullDir, 0755) // Restore for cleanup
+	if err := os.Chmod(fullDir, 0000); err != nil {
+		t.Fatalf("os.Chmod failed: %v", err)
+	}
+	defer func() { _ = os.Chmod(fullDir, 0755) }() // Restore for cleanup
 
 	handler := NewVerdictHandler(tmpDir)
 	encodedID := domain.EncodeVerdictID(dateDir + "/" + filename)
@@ -218,16 +240,22 @@ func TestVerdictHandler_CreateShareURL_Success(t *testing.T) {
 	requestID := "abc123"
 	filename := timestamp + "_" + requestID
 	fullDir := filepath.Join(tmpDir, dateDir)
-	os.MkdirAll(fullDir, 0755)
+	if err := os.MkdirAll(fullDir, 0755); err != nil {
+		t.Fatalf("os.MkdirAll failed: %v", err)
+	}
 
 	// Write test files
 	photoPath := filepath.Join(fullDir, filename+".jpg")
-	os.WriteFile(photoPath, []byte{0xFF, 0xD8}, 0644)
+	if err := os.WriteFile(photoPath, []byte{0xFF, 0xD8}, 0644); err != nil {
+		t.Fatalf("os.WriteFile failed: %v", err)
+	}
 
 	verdictData := domain.VerdictResponse{Admissible: true}
 	verdictJSON, _ := json.Marshal(verdictData)
 	jsonPath := filepath.Join(fullDir, filename+".json")
-	os.WriteFile(jsonPath, verdictJSON, 0644)
+	if err := os.WriteFile(jsonPath, verdictJSON, 0644); err != nil {
+		t.Fatalf("os.WriteFile failed: %v", err)
+	}
 
 	handler := NewVerdictHandler(tmpDir)
 
@@ -270,7 +298,7 @@ func TestVerdictHandler_CreateShareURL_MissingFiles(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, w.Code)
 
 	var response map[string]string
-	json.Unmarshal(w.Body.Bytes(), &response)
+	_ = json.Unmarshal(w.Body.Bytes(), &response)
 	assert.Contains(t, response["error"], "Verdict not found")
 }
 

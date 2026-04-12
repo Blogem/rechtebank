@@ -113,7 +113,7 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("failed to initialize analyzer: %w", err)
 	}
-	defer analyzer.Close()
+	defer func() { _ = analyzer.Close() }()
 
 	// Call API
 	printSection("CALLING GEMINI API")
@@ -206,7 +206,7 @@ func formatFileSize(bytes int) string {
 }
 
 // analyzeWithDebug calls the analyzer and returns the response with raw JSON
-func analyzeWithDebug(ctx context.Context, analyzer *gemini.GeminiAnalyzer, imageData []byte, timeout time.Duration) (*domain.VerdictResponse, string, error) {
+func analyzeWithDebug(ctx context.Context, analyzer *gemini.Analyzer, imageData []byte, timeout time.Duration) (*domain.VerdictResponse, string, error) {
 	response, err := analyzer.AnalyzePhoto(ctx, imageData)
 	if err != nil {
 		return nil, "", err
@@ -228,7 +228,7 @@ func countAndDisplayTokens(ctx context.Context, apiKey string, imageData []byte,
 	if err != nil {
 		return fmt.Errorf("failed to create client: %w", err)
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	// Get prompts
 	systemPrompt := gemini.GetSystemPrompt()

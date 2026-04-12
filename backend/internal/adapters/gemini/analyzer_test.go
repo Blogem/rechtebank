@@ -18,12 +18,12 @@ type MockGeminiClient struct {
 	mock.Mock
 }
 
-func (m *MockGeminiClient) GenerateContent(ctx context.Context, imageData []byte) (*GeminiResponse, error) {
+func (m *MockGeminiClient) GenerateContent(ctx context.Context, imageData []byte) (*Response, error) {
 	args := m.Called(ctx, imageData)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*GeminiResponse), args.Error(1)
+	return args.Get(0).(*Response), args.Error(1)
 }
 
 // Test Gemini client initialization
@@ -45,14 +45,14 @@ func TestNewGeminiAnalyzer_WithoutAPIKey(t *testing.T) {
 // Test successful photo analysis
 func TestGeminiAnalyzer_AnalyzePhoto_Success(t *testing.T) {
 	mockClient := new(MockGeminiClient)
-	analyzer := &GeminiAnalyzer{
+	analyzer := &Analyzer{
 		client:  mockClient,
 		timeout: 30 * time.Second,
 	}
 
 	imageData := []byte{0xFF, 0xD8, 0xFF} // JPEG header
 
-	expectedResponse := &GeminiResponse{
+	expectedResponse := &Response{
 		Admissible: true,
 		Score:      8,
 		Crime:      "Rugleuning-afwijking van 5 graden",
@@ -77,14 +77,14 @@ func TestGeminiAnalyzer_AnalyzePhoto_Success(t *testing.T) {
 // Test non-furniture detection
 func TestGeminiAnalyzer_AnalyzePhoto_NonFurniture(t *testing.T) {
 	mockClient := new(MockGeminiClient)
-	analyzer := &GeminiAnalyzer{
+	analyzer := &Analyzer{
 		client:  mockClient,
 		timeout: 30 * time.Second,
 	}
 
 	imageData := []byte{0xFF, 0xD8, 0xFF}
 
-	expectedResponse := &GeminiResponse{
+	expectedResponse := &Response{
 		Admissible: false,
 		Score:      0,
 		Crime:      "Geen meubilair gedetecteerd",
@@ -106,7 +106,7 @@ func TestGeminiAnalyzer_AnalyzePhoto_NonFurniture(t *testing.T) {
 // Test rate limit handling (429 errors)
 func TestGeminiAnalyzer_AnalyzePhoto_RateLimit_RetrySuccess(t *testing.T) {
 	mockClient := new(MockGeminiClient)
-	analyzer := &GeminiAnalyzer{
+	analyzer := &Analyzer{
 		client:     mockClient,
 		timeout:    30 * time.Second,
 		maxRetries: 3,
@@ -114,7 +114,7 @@ func TestGeminiAnalyzer_AnalyzePhoto_RateLimit_RetrySuccess(t *testing.T) {
 
 	imageData := []byte{0xFF, 0xD8, 0xFF}
 
-	expectedResponse := &GeminiResponse{
+	expectedResponse := &Response{
 		Admissible: true,
 		Score:      7,
 		Crime:      "Minor offense",
@@ -138,7 +138,7 @@ func TestGeminiAnalyzer_AnalyzePhoto_RateLimit_RetrySuccess(t *testing.T) {
 
 func TestGeminiAnalyzer_AnalyzePhoto_RateLimit_RetryExhausted(t *testing.T) {
 	mockClient := new(MockGeminiClient)
-	analyzer := &GeminiAnalyzer{
+	analyzer := &Analyzer{
 		client:     mockClient,
 		timeout:    30 * time.Second,
 		maxRetries: 3,
@@ -162,7 +162,7 @@ func TestGeminiAnalyzer_AnalyzePhoto_RateLimit_RetryExhausted(t *testing.T) {
 // Test timeout scenarios
 func TestGeminiAnalyzer_AnalyzePhoto_Timeout(t *testing.T) {
 	mockClient := new(MockGeminiClient)
-	analyzer := &GeminiAnalyzer{
+	analyzer := &Analyzer{
 		client:  mockClient,
 		timeout: 30 * time.Second,
 	}
@@ -183,7 +183,7 @@ func TestGeminiAnalyzer_AnalyzePhoto_Timeout(t *testing.T) {
 // Test API error scenarios
 func TestGeminiAnalyzer_AnalyzePhoto_APIError(t *testing.T) {
 	mockClient := new(MockGeminiClient)
-	analyzer := &GeminiAnalyzer{
+	analyzer := &Analyzer{
 		client:  mockClient,
 		timeout: 30 * time.Second,
 	}
@@ -203,7 +203,7 @@ func TestGeminiAnalyzer_AnalyzePhoto_APIError(t *testing.T) {
 
 func TestGeminiAnalyzer_AnalyzePhoto_InvalidResponse(t *testing.T) {
 	mockClient := new(MockGeminiClient)
-	analyzer := &GeminiAnalyzer{
+	analyzer := &Analyzer{
 		client:  mockClient,
 		timeout: 30 * time.Second,
 	}
@@ -217,7 +217,7 @@ func TestGeminiAnalyzer_AnalyzePhoto_InvalidResponse(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Contains(t, err.Error(), "Invalid AI response format")
+	assert.Contains(t, err.Error(), "invalid AI response format")
 	mockClient.AssertExpectations(t)
 }
 
@@ -230,7 +230,9 @@ func TestRealGeminiClient_GenerateContent_CompressesImage(t *testing.T) {
 	// Create a large test JPEG that will definitely be compressed
 	img := image.NewRGBA(image.Rect(0, 0, 2000, 1500))
 	var buf bytes.Buffer
-	jpeg.Encode(&buf, img, &jpeg.Options{Quality: 95})
+	if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: 95}); err != nil {
+		t.Fatalf("jpeg.Encode failed: %v", err)
+	}
 	largeJPEG := buf.Bytes()
 
 	// Call compressImage directly (this is what GenerateContent should use)

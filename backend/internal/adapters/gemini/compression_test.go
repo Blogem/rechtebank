@@ -2,6 +2,7 @@ package gemini
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/color"
 	"image/jpeg"
@@ -28,7 +29,9 @@ func createTestJPEGWithDimensions(width, height int) []byte {
 	}
 
 	var buf bytes.Buffer
-	jpeg.Encode(&buf, img, &jpeg.Options{Quality: 95}) // High quality for testing compression
+	if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: 95}); err != nil {
+		panic(fmt.Sprintf("jpeg.Encode failed: %v", err))
+	}
 	return buf.Bytes()
 }
 
@@ -48,7 +51,9 @@ func createTestPNG(width, height int) []byte {
 	}
 
 	var buf bytes.Buffer
-	png.Encode(&buf, img)
+	if err := png.Encode(&buf, img); err != nil {
+		panic(fmt.Sprintf("png.Encode failed: %v", err))
+	}
 	return buf.Bytes()
 }
 
@@ -88,7 +93,9 @@ func TestCompressJPEG_FallbackWhenLarger(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	jpeg.Encode(&buf, img, &jpeg.Options{Quality: 50}) // Already low quality
+	if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: 50}); err != nil {
+		t.Fatalf("jpeg.Encode failed: %v", err)
+	}
 	original := buf.Bytes()
 
 	// Compress - should return original if compressed would be larger
@@ -143,7 +150,9 @@ func TestCompressPNG_FallbackWhenLarger(t *testing.T) {
 	var buf bytes.Buffer
 	// Use BestCompression for original to make it hard to compress further
 	encoder := png.Encoder{CompressionLevel: png.BestCompression}
-	encoder.Encode(&buf, img)
+	if err := encoder.Encode(&buf, img); err != nil {
+		t.Fatalf("png.Encoder.Encode failed: %v", err)
+	}
 	original := buf.Bytes()
 
 	// Compress - should return original if compressed would be larger
@@ -394,11 +403,11 @@ func captureLogOutput(fn func()) string {
 
 	// Restore original output
 	log.SetOutput(oldOutput)
-	w.Close()
+	_ = w.Close()
 
 	// Read captured output
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	return buf.String()
 }
 
@@ -409,7 +418,7 @@ func TestCompressionLogging_Success(t *testing.T) {
 
 	// Capture logs
 	logOutput := captureLogOutput(func() {
-		compressImage(jpegData)
+		_, _ = compressImage(jpegData)
 	})
 
 	// Verify log contains expected fields
@@ -437,7 +446,7 @@ func TestCompressionLogging_WebPPassthrough(t *testing.T) {
 
 	// Capture logs
 	logOutput := captureLogOutput(func() {
-		compressImage(webpData)
+		_, _ = compressImage(webpData)
 	})
 
 	// Verify log indicates pass-through
@@ -459,7 +468,7 @@ func TestCompressionLogging_Skipped(t *testing.T) {
 
 	// Capture logs
 	logOutput := captureLogOutput(func() {
-		compressImage(invalidData)
+		_, _ = compressImage(invalidData)
 	})
 
 	// Verify log indicates skipped compression

@@ -46,7 +46,9 @@ func createMultipartRequest(t *testing.T, fieldName, filename string, content []
 	if err != nil {
 		return nil, err
 	}
-	writer.Close()
+	if err := writer.Close(); err != nil {
+		return nil, err
+	}
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/judge", &buf)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
@@ -103,7 +105,9 @@ func TestJudgeHandler_MissingFile(t *testing.T) {
 	// Request without file
 	var buf bytes.Buffer
 	writer := multipart.NewWriter(&buf)
-	writer.Close()
+	if err := writer.Close(); err != nil {
+		t.Fatalf("writer.Close failed: %v", err)
+	}
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/judge", &buf)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
@@ -116,7 +120,7 @@ func TestJudgeHandler_MissingFile(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	var errorResponse map[string]string
-	json.Unmarshal(w.Body.Bytes(), &errorResponse)
+	_ = json.Unmarshal(w.Body.Bytes(), &errorResponse)
 	assert.Equal(t, "Photo file is required", errorResponse["error"])
 }
 
@@ -135,7 +139,7 @@ func TestJudgeHandler_InvalidContentType(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	var errorResponse map[string]string
-	json.Unmarshal(w.Body.Bytes(), &errorResponse)
+	_ = json.Unmarshal(w.Body.Bytes(), &errorResponse)
 	assert.Equal(t, "Content-Type must be multipart/form-data", errorResponse["error"])
 }
 
@@ -158,7 +162,7 @@ func TestJudgeHandler_FileTooLarge(t *testing.T) {
 	assert.Equal(t, http.StatusRequestEntityTooLarge, w.Code)
 
 	var errorResponse map[string]string
-	json.Unmarshal(w.Body.Bytes(), &errorResponse)
+	_ = json.Unmarshal(w.Body.Bytes(), &errorResponse)
 	assert.Equal(t, "Photo file size must not exceed 10MB", errorResponse["error"])
 }
 
@@ -182,7 +186,7 @@ func TestJudgeHandler_RateLimitError(t *testing.T) {
 	assert.Equal(t, "30", w.Header().Get("Retry-After"))
 
 	var errorResponse map[string]string
-	json.Unmarshal(w.Body.Bytes(), &errorResponse)
+	_ = json.Unmarshal(w.Body.Bytes(), &errorResponse)
 	assert.Contains(t, errorResponse["error"], "rate limit")
 }
 

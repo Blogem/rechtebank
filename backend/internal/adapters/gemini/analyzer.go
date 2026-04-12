@@ -185,7 +185,7 @@ func NewRealGeminiClient(ctx context.Context, apiKey string) (*RealGeminiClient,
 }
 
 // GenerateContent sends an image to Gemini and returns the verdict
-func (c *RealGeminiClient) GenerateContent(ctx context.Context, imageData []byte) (*GeminiResponse, error) {
+func (c *RealGeminiClient) GenerateContent(ctx context.Context, imageData []byte) (*Response, error) {
 	// Compress image before sending to API
 	compressedData, err := compressImage(imageData)
 	if err != nil {
@@ -236,7 +236,7 @@ func (c *RealGeminiClient) GenerateContent(ctx context.Context, imageData []byte
 	log.Printf("[GEMINI] Parsed verdict: admissible=%v, score=%d, crime=%s, verdictType=%s",
 		schema.Admissible, schema.Score, schema.Crime, schema.VerdictType)
 
-	return &GeminiResponse{
+	return &Response{
 		Admissible:  schema.Admissible,
 		Score:       schema.Score,
 		Crime:       schema.Crime,
@@ -277,8 +277,8 @@ func detectMIMEType(data []byte) string {
 	return ""
 }
 
-// NewGeminiAnalyzer creates a new GeminiAnalyzer with the given API key
-func NewGeminiAnalyzer(apiKey string, timeout time.Duration) (*GeminiAnalyzer, error) {
+// NewGeminiAnalyzer creates a new Analyzer with the given API key
+func NewGeminiAnalyzer(apiKey string, timeout time.Duration) (*Analyzer, error) {
 	if apiKey == "" {
 		return nil, errors.New("GEMINI_API_KEY environment variable is required")
 	}
@@ -289,23 +289,23 @@ func NewGeminiAnalyzer(apiKey string, timeout time.Duration) (*GeminiAnalyzer, e
 		return nil, err
 	}
 
-	return &GeminiAnalyzer{
+	return &Analyzer{
 		realClient: client,
 		timeout:    timeout,
 		maxRetries: 3,
 	}, nil
 }
 
-// GeminiAnalyzer implements IPhotoAnalyzer using Google Gemini API
-type GeminiAnalyzer struct {
-	client     GeminiClientInterface // For testing with mocks
-	realClient *RealGeminiClient     // For real API calls
+// Analyzer implements IPhotoAnalyzer using Google Gemini API
+type Analyzer struct {
+	client     ClientInterface   // For testing with mocks
+	realClient *RealGeminiClient // For real API calls
 	timeout    time.Duration
 	maxRetries int
 }
 
-// GeminiResponse represents the parsed response from Gemini API
-type GeminiResponse struct {
+// Response represents the parsed response from Gemini API
+type Response struct {
 	Admissible  bool
 	Score       int
 	Crime       string
@@ -316,9 +316,9 @@ type GeminiResponse struct {
 	RawJSON     string // The raw JSON string from Gemini
 }
 
-// GeminiClientInterface defines the interface for the Gemini client
-type GeminiClientInterface interface {
-	GenerateContent(ctx context.Context, imageData []byte) (*GeminiResponse, error)
+// ClientInterface defines the interface for the Gemini client
+type ClientInterface interface {
+	GenerateContent(ctx context.Context, imageData []byte) (*Response, error)
 }
 
 // RateLimitError indicates a rate limit was hit
@@ -340,7 +340,7 @@ func (e *InvalidResponseError) Error() string {
 }
 
 // AnalyzePhoto analyzes the image using Gemini API
-func (a *GeminiAnalyzer) AnalyzePhoto(ctx context.Context, imageData []byte) (*domain.VerdictResponse, error) {
+func (a *Analyzer) AnalyzePhoto(ctx context.Context, imageData []byte) (*domain.VerdictResponse, error) {
 	var lastErr error
 	attempts := a.maxRetries + 1
 	if attempts < 1 {
@@ -380,11 +380,6 @@ func (a *GeminiAnalyzer) AnalyzePhoto(ctx context.Context, imageData []byte) (*d
 		var rateLimitErr *RateLimitError
 		if errors.As(err, &rateLimitErr) {
 			if i < a.maxRetries {
-				// Exponential backoff
-				backoff := time.Duration(1<<uint(i)) * time.Second
-				if backoff > 8*time.Second {
-					backoff = 8 * time.Second
-				}
 				time.Sleep(rateLimitErr.RetryAfter)
 				continue
 			}
@@ -393,7 +388,7 @@ func (a *GeminiAnalyzer) AnalyzePhoto(ctx context.Context, imageData []byte) (*d
 
 		var invalidErr *InvalidResponseError
 		if errors.As(err, &invalidErr) {
-			return nil, errors.New("Invalid AI response format")
+			return nil, errors.New("invalid AI response format")
 		}
 
 		return nil, fmt.Errorf("AI analysis failed: %w", err)
@@ -402,7 +397,7 @@ func (a *GeminiAnalyzer) AnalyzePhoto(ctx context.Context, imageData []byte) (*d
 	return nil, lastErr
 }
 
-func (a *GeminiAnalyzer) getClient() GeminiClientInterface {
+func (a *Analyzer) getClient() ClientInterface {
 	if a.client != nil {
 		return a.client
 	}
@@ -410,7 +405,7 @@ func (a *GeminiAnalyzer) getClient() GeminiClientInterface {
 }
 
 // Close closes the analyzer and its resources
-func (a *GeminiAnalyzer) Close() error {
+func (a *Analyzer) Close() error {
 	if a.realClient != nil {
 		return a.realClient.Close()
 	}

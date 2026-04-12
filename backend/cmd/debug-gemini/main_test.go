@@ -95,11 +95,11 @@ func TestPrintSection(t *testing.T) {
 
 	printSection("TEST SECTION")
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	expected := "=== TEST SECTION ===\n"
@@ -177,10 +177,10 @@ func TestRunWithMissingAPIKey(t *testing.T) {
 	oldAPIKey := os.Getenv("GEMINI_API_KEY")
 	defer func() {
 		os.Args = oldArgs
-		os.Setenv("GEMINI_API_KEY", oldAPIKey)
+		_ = os.Setenv("GEMINI_API_KEY", oldAPIKey)
 	}()
 
-	os.Unsetenv("GEMINI_API_KEY")
+	_ = os.Unsetenv("GEMINI_API_KEY")
 
 	os.Args = []string{"debug-gemini", tmpFile}
 

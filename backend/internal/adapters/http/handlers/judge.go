@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	_ "image/jpeg"
+	_ "image/jpeg" // register JPEG decoder for image format detection
 	_ "image/png"
 	"io"
 	"log"
@@ -54,7 +54,7 @@ func (h *JudgeHandler) Handle(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Photo file is required"})
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// Read file data
 	imageData, err := io.ReadAll(file)
