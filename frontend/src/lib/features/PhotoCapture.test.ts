@@ -6,7 +6,7 @@ import * as rotationUtils from '$lib/shared/utils/rotationUtils';
 
 describe('PhotoCapture', () => {
     const mockOnPhotoConfirmed = vi.fn();
-    const mockOnCancelled = vi.fn();
+
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -124,7 +124,7 @@ describe('PhotoCapture', () => {
                     }
                 }, 0);
             }
-        } as any;
+        } as unknown as typeof Image;
 
         render(PhotoCapture, { props: { onPhotoConfirmed: mockOnPhotoConfirmed } });
 
@@ -312,7 +312,7 @@ describe('PhotoCapture', () => {
                     }
                 }, 0);
             }
-        } as any;
+        } as unknown as typeof Image;
 
         render(PhotoCapture, { props: { onPhotoConfirmed: mockOnPhotoConfirmed } });
 

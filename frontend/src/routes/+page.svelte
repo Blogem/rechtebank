@@ -30,9 +30,9 @@
 		setPermissionsGranted(true);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async function handlePhotoConfirmed(blob: Blob, rotation: number) {
 		// PhotoCapture component handles rotation internally and returns rotated blob
-		// Pass rotation=0 since blob is already rotated (rotation value kept for metadata/logging)
 		appState.set('uploading');
 		uploadError.set(null);
 
@@ -58,11 +58,6 @@
 			uploadError.set(error instanceof Error ? error.message : 'Onbekende fout opgetreden');
 			appState.set('error');
 		}
-	}
-
-	function handleRetake() {
-		// PhotoCapture component handles its own cleanup
-		appState.set('camera-ready');
 	}
 
 	function handleRetry() {

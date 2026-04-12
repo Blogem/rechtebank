@@ -79,7 +79,7 @@
 			}
 
 			// Share data with URL in separate field
-			const shareData: ShareData = {
+			const shareData: { title: string; text: string; files?: File[] } = {
 				title: 'Vonnis van de Rechtbank voor Meubilair',
 				text: `${verdictText}\n\nScore: ${verdict.score}/10\n\nBekijk het volledige vonnis hier: ${shareUrl}`
 			};
@@ -97,9 +97,8 @@
 					if (navigator.canShare && navigator.canShare(dataWithFile)) {
 						shareData.files = [file];
 					}
-				} catch (err) {
+				} catch {
 					// If file conversion fails, continue without the image
-					console.log('Could not include image in share:', err);
 				}
 			}
 
@@ -126,7 +125,7 @@
 			try {
 				await navigator.clipboard.writeText(shareUrl);
 				showToast('✓ Link gekopieerd naar klembord!');
-			} catch (err) {
+			} catch {
 				// Clipboard API failed, create a selectable text element
 				const textArea = document.createElement('textarea');
 				textArea.value = shareUrl;
@@ -137,7 +136,7 @@
 				try {
 					document.execCommand('copy');
 					showToast('✓ Link gekopieerd naar klembord!');
-				} catch (e) {
+				} catch {
 					showToast('Kopieer deze link: ' + shareUrl, 8000);
 				}
 				document.body.removeChild(textArea);

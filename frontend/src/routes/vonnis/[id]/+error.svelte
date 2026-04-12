@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { resolve } from '$app/paths';
 </script>
 
 <svelte:head>
@@ -20,7 +21,7 @@
 			<p class="hint">Probeer het later opnieuw.</p>
 		{/if}
 
-		<a href="/" class="back-button">Terug naar Rechtbank</a>
+		<a href={resolve('/')} class="back-button">Terug naar Rechtbank</a>
 	</div>
 </div>
 

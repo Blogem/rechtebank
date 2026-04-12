@@ -4,6 +4,7 @@
 	import VerdictDisplay from '$lib/features/VerdictDisplay.svelte';
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 
 	export let data: PageData;
 
@@ -17,10 +18,10 @@
 		: data.verdict.verdict.crime;
 
 	// Get current URL for og:url
-	$: pageUrl = typeof window !== 'undefined' ? window.location.href : '';
+	const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
 
 	function handleReset() {
-		goto('/');
+		goto(resolve('/'));
 	}
 </script>
 

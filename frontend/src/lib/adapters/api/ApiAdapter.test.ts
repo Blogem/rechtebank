@@ -9,7 +9,7 @@ describe('ApiAdapter', () => {
     beforeEach(() => {
         adapter = new ApiAdapter('http://localhost:8080', 3, 100);
         mockFetch = vi.fn();
-        globalThis.fetch = mockFetch as any;
+        globalThis.fetch = mockFetch as unknown as typeof fetch;
     });
 
     const createMockMetadata = (): PhotoMetadata => ({

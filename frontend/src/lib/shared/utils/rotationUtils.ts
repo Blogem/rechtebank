@@ -19,8 +19,10 @@ export function getInitialRotation(): number {
     }
 
     // Fallback to legacy window.orientation (iOS)
-    if (typeof window !== 'undefined' && (window as any).orientation !== undefined) {
-        const angle = (window as any).orientation;
+    // Legacy iOS orientation API — not in modern typings
+    const win = window as unknown as { orientation?: number };
+    if (typeof window !== 'undefined' && win.orientation !== undefined) {
+        const angle = win.orientation;
         // Normalize negative angles (iOS uses -90, 0, 90, 180)
         return angle < 0 ? 360 + angle : angle;
     }

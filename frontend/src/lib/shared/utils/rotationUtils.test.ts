@@ -8,15 +8,15 @@ describe('rotationUtils', () => {
 
         beforeEach(() => {
             originalScreen = globalThis.screen;
-            originalOrientation = (globalThis.window as any).orientation;
+            originalOrientation = (globalThis.window as unknown as Record<string, unknown>).orientation as number | undefined;
         });
 
         afterEach(() => {
             globalThis.screen = originalScreen;
             if (originalOrientation !== undefined) {
-                (globalThis.window as any).orientation = originalOrientation;
+                (globalThis.window as unknown as Record<string, unknown>).orientation = originalOrientation;
             } else {
-                delete (globalThis.window as any).orientation;
+                delete (globalThis.window as unknown as Record<string, unknown>).orientation;
             }
         });
 
@@ -39,7 +39,7 @@ describe('rotationUtils', () => {
             });
 
             // Set window.orientation
-            (globalThis.window as any).orientation = 90;
+            (globalThis.window as unknown as Record<string, unknown>).orientation = 90;
 
             const rotation = getInitialRotation();
             expect(rotation).toBe(90);
@@ -53,7 +53,7 @@ describe('rotationUtils', () => {
             });
 
             // Set window.orientation to -90 (iOS convention)
-            (globalThis.window as any).orientation = -90;
+            (globalThis.window as unknown as Record<string, unknown>).orientation = -90;
 
             const rotation = getInitialRotation();
             expect(rotation).toBe(270); // -90 + 360 = 270
@@ -67,7 +67,7 @@ describe('rotationUtils', () => {
             });
 
             // Remove window.orientation
-            delete (globalThis.window as any).orientation;
+            delete (globalThis.window as unknown as Record<string, unknown>).orientation;
 
             const rotation = getInitialRotation();
             expect(rotation).toBe(0);
@@ -117,13 +117,13 @@ describe('rotationUtils', () => {
                 translate: vi.fn(),
                 rotate: vi.fn(),
                 drawImage: vi.fn()
-            } as any;
+            } as unknown as CanvasRenderingContext2D;
 
             mockCanvas = {
                 width: 0,
                 height: 0,
                 getContext: vi.fn(() => mockContext)
-            } as any;
+            } as unknown as HTMLCanvasElement;
 
             // Mock document.createElement to return our mock canvas
             vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
