@@ -12,7 +12,29 @@ env:
   MANIFEST_PATH: manifests/rechtebank
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - '.github/workflows/build-images.yml'
+            frontend:
+              - 'frontend/**'
+              - '.github/workflows/build-images.yml'
+
   build-backend:
+    needs: [changes]
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -37,6 +59,8 @@ jobs:
             ${{ env.BACKEND_IMAGE }}:latest
 
   build-frontend:
+    needs: [changes]
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -62,6 +86,10 @@ jobs:
 
   update-manifests:
     needs: [build-backend, build-frontend]
+    if: |
+      always() &&
+      !contains(needs.*.result, 'failure') &&
+      (needs.build-backend.result == 'success' || needs.build-frontend.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout manifest repo
@@ -70,9 +98,14 @@ jobs:
           repository: ${{ env.MANIFEST_REPO }}
           token: ${{ secrets.MANIFEST_REPO_PAT }}
 
-      - name: Update image tags
+      - name: Update backend image tag
+        if: needs.build-backend.result == 'success'
         run: |
           sed -i "s|image: ${{ env.BACKEND_IMAGE }}:.*|image: ${{ env.BACKEND_IMAGE }}:sha-${{ github.sha }}|" ${{ env.MANIFEST_PATH }}/backend-deployment.yaml
+
+      - name: Update frontend image tag
+        if: needs.build-frontend.result == 'success'
+        run: |
           sed -i "s|image: ${{ env.FRONTEND_IMAGE }}:.*|image: ${{ env.FRONTEND_IMAGE }}:sha-${{ github.sha }}|" ${{ env.MANIFEST_PATH }}/frontend-deployment.yaml
 
       - name: Commit and push
