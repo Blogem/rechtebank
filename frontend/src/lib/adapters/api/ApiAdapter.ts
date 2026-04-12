@@ -19,14 +19,9 @@ export class ApiAdapter implements IApiPort {
      */
     async uploadPhoto(photo: Blob, metadata: PhotoMetadata, rotation: number = 0): Promise<Verdict> {
         // Apply rotation if needed, then convert to JPEG
-        let processedBlob = photo;
-
-        if (rotation !== 0) {
-            processedBlob = await this.applyRotation(photo, rotation);
-        } else {
-            // No rotation needed, just ensure JPEG format
-            processedBlob = await this.convertToJPEG(photo);
-        }
+        const processedBlob = rotation !== 0
+            ? await this.applyRotation(photo, rotation)
+            : await this.convertToJPEG(photo);
 
         // Validate file size (10MB max)
         const maxSize = 10 * 1024 * 1024;
@@ -185,10 +180,10 @@ export class ApiAdapter implements IApiPort {
 
                 // Check if it's an abort error (timeout)
                 if (fetchError instanceof DOMException && fetchError.name === 'AbortError') {
-                    throw new Error('De rechter heeft te lang beraadslaagd. Probeer het opnieuw.');
+                    throw new Error('De rechter heeft te lang beraadslaagd. Probeer het opnieuw.', { cause: fetchError });
                 }
                 if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-                    throw new Error('De rechter heeft te lang beraadslaagd. Probeer het opnieuw.');
+                    throw new Error('De rechter heeft te lang beraadslaagd. Probeer het opnieuw.', { cause: fetchError });
                 }
 
                 throw fetchError;
