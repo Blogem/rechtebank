@@ -1,11 +1,13 @@
 package gemini
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"rechtebank/backend/internal/core/domain"
@@ -222,8 +224,8 @@ func (c *RealGeminiClient) GenerateContent(ctx context.Context, imageData []byte
 		return nil, &InvalidResponseError{Message: "unexpected response format"}
 	}
 
-	// Store raw JSON
-	rawJSON := string(textPart)
+	// Store raw JSON (compacted so log ingestion sees one entry per event)
+	rawJSON := compactJSON(string(textPart))
 	log.Printf("[GEMINI] Raw API response: %s", rawJSON)
 
 	// Parse JSON response
@@ -251,6 +253,17 @@ func (c *RealGeminiClient) GenerateContent(ctx context.Context, imageData []byte
 // Close closes the Gemini client
 func (c *RealGeminiClient) Close() error {
 	return c.client.Close()
+}
+
+// compactJSON returns s with any JSON indentation removed so logging it
+// produces a single-line entry. Invalid JSON falls back to newline-stripping
+// so log ingestion still sees one entry per event.
+func compactJSON(s string) string {
+	var buf bytes.Buffer
+	if err := json.Compact(&buf, []byte(s)); err != nil {
+		return strings.ReplaceAll(s, "\n", " ")
+	}
+	return buf.String()
 }
 
 func detectMIMEType(data []byte) string {
