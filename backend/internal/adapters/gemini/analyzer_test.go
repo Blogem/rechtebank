@@ -266,3 +266,44 @@ func TestRealGeminiClient_GenerateContent_MIMETypePreserved(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "webp", detectMIMEType(compressedWebP))
 }
+
+func TestCompactJSON(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{
+			name:  "pretty-printed JSON becomes single line",
+			input: "{\n  \"admissible\": false,\n  \"score\": 0\n}",
+			want:  `{"admissible":false,"score":0}`,
+		},
+		{
+			name:  "already-compact JSON is unchanged",
+			input: `{"admissible":true,"score":7}`,
+			want:  `{"admissible":true,"score":7}`,
+		},
+		{
+			name:  "invalid JSON falls back to newline-stripping",
+			input: "not json\nwith newlines",
+			want:  "not json with newlines",
+		},
+		{
+			name:  "empty string",
+			input: "",
+			want:  "",
+		},
+		{
+			name:  "nested objects and arrays",
+			input: "{\n  \"items\": [\n    1,\n    2\n  ]\n}",
+			want:  `{"items":[1,2]}`,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := compactJSON(tc.input)
+			assert.Equal(t, tc.want, got)
+			assert.NotContains(t, got, "\n", "compacted output must not contain newlines")
+		})
+	}
+}
