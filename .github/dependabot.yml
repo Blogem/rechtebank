@@ -13,6 +13,8 @@ updates:
           - minor
           - patch
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 5
 
   - package-ecosystem: npm
     directory: /frontend
@@ -27,6 +29,8 @@ updates:
           - minor
           - patch
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 5
 
   - package-ecosystem: docker
     directory: /backend
@@ -41,6 +45,8 @@ updates:
           - minor
           - patch
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 5
 
   - package-ecosystem: docker
     directory: /frontend
@@ -55,6 +61,8 @@ updates:
           - minor
           - patch
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 5
 
   - package-ecosystem: github-actions
     directory: /
@@ -70,3 +78,5 @@ updates:
           - minor
           - patch
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 5
