@@ -28,6 +28,14 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # TypeScript 7.0 (the native Go port) ships without a stable programmatic
+      # API, so svelte-check and typescript-eslint both refuse to run against it.
+      # Scoped to 7.0.x on purpose: when 7.1 lands we want the PR, since that is
+      # the release that is supposed to ship the stable API.
+      - dependency-name: typescript
+        versions:
+          - 7.0.x
     open-pull-requests-limit: 5
     cooldown:
       default-days: 5
