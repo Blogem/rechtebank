@@ -1,3 +1,4 @@
+import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
 import fs from 'fs';
@@ -8,7 +9,23 @@ const certPath = '../192.168.1.37+1.pem';
 const hasSSLCerts = fs.existsSync(keyPath) && fs.existsSync(certPath);
 
 export default defineConfig({
-	plugins: [sveltekit()],
+	// Kit 3 removed svelte.config.js and the `kit` namespace — the config now
+	// goes straight to the plugin.
+	plugins: [
+		sveltekit({
+			// Kit 3 removed `$lib` in favour of `#lib`. There are 23 `$lib`
+			// imports here; this alias is the escape hatch the upgrade guide
+			// documents, so the migration stays reviewable. Renaming them to
+			// `#lib` and dropping this line is a follow-up.
+			alias: { $lib: 'src/lib' },
+			// adapter-static for SPA mode - compiles to static files served by Nginx
+			adapter: adapter({
+				// default options - outputs to build/
+				fallback: 'index.html', // SPA mode - all routes serve index.html
+				precompress: false
+			})
+		})
+	],
 	test: {
 		// Vitest configuration for unit and component testing
 		include: ['src/**/*.{test,spec}.{js,ts}'],

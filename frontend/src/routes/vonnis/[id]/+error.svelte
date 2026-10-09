@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	// Kit 3: $app/stores is gone; `page` now comes from $app/state and is a
+	// plain reactive object rather than a store, hence no `$` prefix below.
+	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 </script>
 
@@ -10,12 +12,12 @@
 <div class="error-page">
 	<div class="error-content">
 		<div class="gavel-icon">🔨</div>
-		<h1>Fout {$page.status}</h1>
-		<p class="error-message">{$page.error?.message || 'Er is een fout opgetreden'}</p>
+		<h1>Fout {page.status}</h1>
+		<p class="error-message">{page.error?.message || 'Er is een fout opgetreden'}</p>
 
-		{#if $page.status === 404}
+		{#if page.status === 404}
 			<p class="hint">Dit vonnis bestaat niet of is niet meer beschikbaar.</p>
-		{:else if $page.status === 400}
+		{:else if page.status === 400}
 			<p class="hint">De vonnis-link is ongeldig.</p>
 		{:else}
 			<p class="hint">Probeer het later opnieuw.</p>
