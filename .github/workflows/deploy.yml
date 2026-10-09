@@ -3,6 +3,12 @@ name: Build and Deploy
 on:
   push:
     branches: [main]
+  # Manual re-run. Needed because build-backend/build-frontend are gated on
+  # "did backend/ or frontend/ change since the last commit", so a merged
+  # change whose build failed has no way to be rebuilt until something else
+  # touches that directory. See the matching override in ci.yml's `changes`
+  # job — without it a dispatch finds an empty diff and builds nothing.
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io

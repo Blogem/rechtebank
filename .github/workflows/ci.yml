@@ -17,8 +17,11 @@ jobs:
     name: Detect changes
     runs-on: ubuntu-latest
     outputs:
-      backend: ${{ steps.filter.outputs.backend }}
-      frontend: ${{ steps.filter.outputs.frontend }}
+      # A manual dispatch has no diff to inspect, so paths-filter reports
+      # nothing changed and the deploy workflow would build nothing. Treat a
+      # dispatch as "rebuild both" — that is the point of running it by hand.
+      backend: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.backend }}
+      frontend: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.frontend }}
     steps:
       - uses: actions/checkout@v7.0.1
 
