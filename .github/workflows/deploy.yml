@@ -10,6 +10,14 @@ on:
   # job — without it a dispatch finds an empty diff and builds nothing.
   workflow_dispatch:
 
+# Serialise deploys on this branch. Each run seds its own sha into the
+# infra-workloads manifests and pushes; without a concurrency group two
+# overlapping runs can finish out of order and the older one wins, silently
+# leaving the slower-but-older image deployed.
+concurrency:
+  group: deploy-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   REGISTRY: ghcr.io
   BACKEND_IMAGE: ghcr.io/blogem/rechtebank-backend
